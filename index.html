@@ -1,0 +1,222 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Testbed Modern Configuration tool </title>
+		<!-- jQuery 3.1.1 library -->
+		<script src="libs/jquery.min.js"></script>
+		<!-- Bootstrap 3.3.7 library -->
+		<link rel="stylesheet" href="libs/css/bootstrap.min.css">
+		<script src="libs/bootstrap.min.js"></script>
+	</head>
+
+	<link rel="stylesheet" type="text/css" href="libs/css/jquery.dataTables.min.css">
+	<link rel="stylesheet" type="text/css" href="libs/css/select.dataTables.min.css">
+	<link rel="stylesheet" type="text/css" href="libs/css/select.dataTables.min.css">
+	<link rel="stylesheet" type="text/css" href="libs/css/buttons.dataTables.min.css">
+	<link rel="stylesheet" type="text/css" href="libs/css/rowReorder.dataTables.min.css">
+	<link rel="stylesheet" type="text/css" href="libs/css/autoFill.dataTables.min.css">
+	<link rel="stylesheet" type="text/css" href="libs/css/chartist.min.css">
+
+	<body>
+		<nav class="navbar navbar-inverse navbar-fixed-top">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="#">KitKat</a>
+			</div>
+			<ul class="nav navbar-nav">
+				<li><a href="#">Home</a></li>
+				<li><a href="#">Getting started</a></li>
+				<li><a href="#">Graph</a></li>
+				<li><a href="#">Configuration</a></li>
+				<li><a href="#">Contacts</a></li>
+			</ul>
+			<ul class="nav navbar-nav navbar-right">
+				<li><a href="#"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
+				<li><a href="#"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+			</ul>
+		</nav>
+
+		<br>
+
+		<div class="modal fade" id="formModal" role="dialog">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">&times;</button>
+						<h4 class="modal-title">Modal Header</h4>
+					</div>
+					<div class="modal-body">
+						<p>Some text in the modal.</p>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+					</div>
+				</div> <! -- /.modal-content -->
+			</div><!-- /.modal-dialog-->
+		</div><!-- /.modal -->
+
+		<div class="container-fluid"> 
+			<div class="row">
+				<div class="col-sm-1"></div>
+				<div class="col-sm-10"> 
+					<div class="ct-chart ct-golden-section"></div>
+				</div>
+				<div class="col-sm-1"></div>
+			</div>
+			<div class="row"> 
+				<div class="col-sm-1"></div>
+				<div class="col-sm-6">
+					<table id="primary_channel" class="display" cellspacing="0" width="100%"> </table>
+					<br>
+					<div>
+						<button type='button' class='btn btn-primary btn-lg' id='saveButton' value='Save' data-toggle='modal' data-target='#formModal'>Save</button>
+						<button type='button' class='btn btn-default btn-lg' id='cancelButton' value='Cancel'>Cancel</button>
+						<span id='messages'>&nbsp;</span>
+					</div>
+				</div>
+				<div class="col-sm-5">
+					<table id="secondary_channel" class="display" cellspacing="0" width="100%"> </table>
+				</div>
+				<!--div class="col-sm-1"></div-->
+			</div>
+		</div>
+
+		<!-- datatables-1.10.13 Library -->
+		<script type="text/javascript" src="libs/jquery.dataTables.min.js"></script>
+		<!-- select 1.2.1 Library -->
+		<script type="text/javascript" src="libs/dataTables.select.min.js"></script>
+		<!-- Buttons-1.2.4 Library -->
+		<script type="text/javascript" src="libs/dataTables.buttons.min.js"></script>
+		<!-- Rowreorder-1.2.0 Library -->
+		<script type="text/javascript" src="libs/dataTables.rowReorder.min.js"></script>
+		<!-- autofill 2.1.3 Library -->
+		<script type="text/javascript" src="libs/dataTables.autoFill.min.js"></script>
+		<script type="text/javascript" src="client/setvalue_form.js"></script>
+		<script src="libs/chartist.min.js"></script>
+
+		<script type="text/javascript">
+			$(document).ready(function() {
+				var dataSet =[
+					["", "1", "YES", "N/C_BRT_5H","1500", "10", "45", ""] ,
+					["", "2", "YES", "N/X","1600", "20", "45", ""] ,
+				];
+
+				//common Datatables properties
+				$.extend( true, $.fn.dataTable.defaults, {
+					"searching": false,
+					"paging": false,
+					"info": false,
+					"scrollY": "200px",
+					"scrollCollapse": true,
+					"select" : { 
+						style: "multi", 
+						selector: 'td:first-child' }
+				});
+
+				var t2 = $('#secondary_channel').DataTable({
+					columnDefs:[
+						{ className: 'select-checkbox', targets: 0, width: "10px"},
+						{title:"Label", targets:1, className: "chnLabel"},
+						{title:"Value", width:"30px", targets:2 },
+						{title:"Trigger", width:"30px", targets:3, className: "chnTrigger"},
+						{title:"Type",width:"30px", targets:4, className : "chnType", name: "chnType"} 
+
+						],
+					dom: 'Bfrtip',
+					buttons: [
+						{ text:"New Setvalue"},
+						{ text:"Remove Setvalue"},
+						{ text:"Edit Setvalue"},
+						{ text:"Merge"},
+						{ text: "Import A2L"} 
+					]	
+				});
+					
+				var t1 = $('#primary_channel').DataTable({
+					data: dataSet,
+					"columnDefs":[
+						{ orderable: false, targets: '_all'},
+						{ className: 'select-checkbox', targets: 0, width: "10px"},
+						{ className: 'reorder', title: "#",targets:1, width: "10px" },
+						{ title: "Activ", targets:2 , width: "30px" },
+						{ title: "Mode", targets:3 ,  },
+						{ title: "Dyno", targets:4 ,  },
+						{ title: "Engine", targets:5 ,  },
+						{ title: "Time", targets:6,  },
+						
+					],
+					dom: 'Bfrtip',
+					buttons: [
+						{ text: 'New Operating point' },
+						{ text: 'Remove Operating point' },
+						{ text: 'Edit Operating point' },
+						{ text: 'Wizard' },
+						{ text: 'Export CSV' },
+						{ text: 'Import CSV' }
+					],
+					autoFill:{
+						columns: [3,4,5,6] 
+					}	 
+				});
+
+
+				// multi select implementation on the first row column
+				$('#primary_channel td:first-child').on( 'click', 'tr', function () {
+					$(this).toggleClass('selected');
+				} );
+
+				// define the action for the 'new row' button of t2 table
+				/*TODO:
+				    1- frontend user input validation ( using HTML5 feature like 'required' attribute for form' and JQuery form method )
+					2- handle submit event when save button is pressed :
+						for now I'm not able to catch it using JQuery
+						the usage of <input type="submit" make the page reload => data loss
+				   */
+				t2.button(0).action ( function(event,dt,button, config ) {
+					$('#formModal').find('.modal-footer').append(
+						'<button type="button" class="btn btn-primary" id="btn-newSetvalue">Save</button>'
+					//	'<input type="submit" class="btn btn-primary contextualItems" id="btn-newSetvalue" value="Save" form="formNewSetValue">'
+					);
+					$('#formModal').find('.modal-title').text(button.text());
+					$('#formModal').find('.modal-body').append(str_setvalueForm );
+					$('#formModal').modal('show') 
+				});
+
+				//clean dynamic element from modal DOM object
+				$('#formModal').on('hidden.bs.modal', function(e) {
+						$('#formModal .contextualItems').remove();
+				});
+
+				//new row, save modal handler
+				$(document).on('click','#btn-newSetvalue', function(e) {
+					var dt = $('#secondary_channel').DataTable();
+					var inputSet = [""];
+					
+					$('#formModal *').filter('.newSetvalue-input').each( function(i) {
+						inputSet.push( $(this).val() );
+					});
+					
+					var rowNode =dt.row.add(inputSet).draw().node();
+
+					$('#formModal').modal('hide'); 
+				});
+
+				//remove selected row in the t2 table
+				t2.button(1).action( function( event, dt, btn, config ) {
+					dt.rows('.selected').remove().draw();
+				});
+			}); // function.ready({})
+
+		</script>
+
+		<script>
+		  // Initialize a Line chart in the container with the ID chart1
+		    new Chartist.Line('.ct-chart', {
+		        labels: [1500, 1750, 2000, 2250],
+			    series: [[100, 120, 180, 200]]
+		    }, { width: '100%', height: '500px'});
+
+		</script>
+	</body>
+</html>

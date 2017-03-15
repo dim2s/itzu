@@ -201,7 +201,7 @@
 					$('#formModal').modal('show') 
 				});
 
-				$('#chnLabel').on('change', function() {
+				$('#chnLabel').on('change', function(e) {
 						console.log("chocote");
 				});
 

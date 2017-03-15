@@ -96,6 +96,20 @@
 		<script src="libs/chartist.min.js"></script>
 
 		<script type="text/javascript">
+			/* unordered ToDo list:
+			   - select all rows when clicking on the checkbox header
+			   - child row with additional info: unit, description, etc..
+			   - rendering value column with unit ( unit is a hidden column)
+			   - hidden column unit, description, type, targetsRow
+			   - ajax implementation for <datalist input>
+			   - a2l parsing
+			   - csv import/export
+			   - graphical representation of operating point (D3.js, chartist?)
+			   - form validation (required value, range, uniqness)
+			   - onreload page confirmation before loosing data
+			   - group row by type ( channel tab uniquement )
+			   - remplacer yes/no de la colonne ACTIV par une image clickable toggle
+			   */
 			$(document).ready(function() {
 				var dataSet =[
 					["", "1", "YES", "N/C_BRT_5H","1500", "10", "45", ""] ,
@@ -116,18 +130,18 @@
 
 				var t2 = $('#secondary_channel').DataTable({
 					columnDefs:[
-						{ className: 'select-checkbox', targets: 0, width: "10px"},
+						{className: 'select-checkbox', targets: 0, width: "10px"},
 						{title:"Label", targets:1, className: "chnLabel"},
-						{title:"Value", width:"30px", targets:2 },
-						{title:"Trigger", width:"30px", targets:3, className: "chnTrigger"},
-						{title:"Type",width:"30px", targets:4, className : "chnType", name: "chnType"} 
+						{title:"Value",  targets:2 },
+						{title:"Trigger", targets:3, className: "chnTrigger"},
+						{title:"Type", targets:4, className : "chnType", name: "chnType"} 
 
 						],
 					dom: 'Bfrtip',
 					buttons: [
-						{ text:"New Setvalue"},
-						{ text:"Remove Setvalue"},
-						{ text:"Edit Setvalue"},
+						{ text:"New"},
+						{ text:"Remove"},
+						{ text:"Edit"},
 						{ text:"Merge"},
 						{ text: "Import A2L"} 
 					]	
@@ -148,9 +162,9 @@
 					],
 					dom: 'Bfrtip',
 					buttons: [
-						{ text: 'New Operating point' },
-						{ text: 'Remove Operating point' },
-						{ text: 'Edit Operating point' },
+						{ text: 'New' },
+						{ text: 'Remove' },
+						{ text: 'Edit' },
 						{ text: 'Wizard' },
 						{ text: 'Export CSV' },
 						{ text: 'Import CSV' }
@@ -175,7 +189,7 @@
 				   */
 				t2.button(0).action ( function(event,dt,button, config ) {
 					$('#formModal').find('.modal-footer').append(
-						'<button type="button" class="btn btn-primary" id="btn-newSetvalue">Save</button>'
+						'<button type="button" class="btn btn-primary contextualItems" id="btn-newSetvalue">Save</button>'
 					//	'<input type="submit" class="btn btn-primary contextualItems" id="btn-newSetvalue" value="Save" form="formNewSetValue">'
 					);
 					$('#formModal').find('.modal-title').text(button.text());

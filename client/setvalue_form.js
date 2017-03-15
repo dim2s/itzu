@@ -16,18 +16,18 @@ var str_setvalueForm = `
 		<div class="form-group">
 			<label for="trigger" class="control-label">Trigger:</label>
 			<select class="form-control newSetvalue-input" id="setvalue-trigger" >
-				<option>Before Operating Point</option>
-				<option>After Operating Point</option>
+				<option>Before</option>
+				<option>After</option>
 			</select>
 		</div>
 		<div class="form-group">
 			<label for="type" class="control-label">Type (optional):</label>
 			<select class="form-control newSetvalue-input" id="setvalue-type">
-				<option>ECU Map</option>
-				<option>ECU Curve</option>
-				<option>ECU Value</option>
-				<option>STD NN</option>
-				<option>Draft NN</option>
+				<option>Map</option>
+				<option>Curve</option>
+				<option>Value</option>
+				<option>NN</option>
+				<option>Draft</option>
 			</select>
 		</div>
 		<div class="form-group">

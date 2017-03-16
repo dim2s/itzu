@@ -111,7 +111,9 @@
 			   - group row by type ( channel tab uniquement )
 			   - remplacer yes/no de la colonne ACTIV par une image clickable toggle
 			   - limit the number of row datalist can show ( or use JQuery flexdatalist plugin )
+			   - use the name of button instead of their indexes
 			   - autocomplete unit, description and type base on label selection
+			   - disable remove and edit button when they are not necessary (0 or multi rows selected)
 			   */
 			$(document).ready(function() {
 				var dataSet =[
@@ -141,12 +143,12 @@
 
 						],
 					dom: 'Bfrtip',
-					buttons: [
-						{ text:"New"},
-						{ text:"Remove"},
-						{ text:"Edit"},
-						{ text:"Merge"},
-						{ text: "Import A2L"} 
+					buttons: [ // ** do not change the name attribute **
+						{ text:"New", name: "chnNew-btn"},
+						{ text:"Remove", name: "chnRemove-btn" },
+						{ text:"Edit", name: "chnEdit-btn", state:false},
+						{ text:"Merge", name: "chnMerge-btn"},
+						{ text: "Import A2L", name: "chnImport-btn"} 
 					]	
 				});
 					
@@ -178,10 +180,87 @@
 				});
 
 
-				// multi select implementation on the first row column
-				$('#opDataTable td:first-child').on( 'click', 'tr', function () {
-					$(this).toggleClass('selected');
+				// at the begining there is no row so there is no possibility to 
+				// remove, edit or merge a row
+				t2.buttons([0,1,2,3]).disable();
+
+				// make sure that chnDataTable 'new' button is activated only if 
+				// one operating point is selected
+				function toggleChnDataTable_NewBtn() { 
+					if ( t1.rows('.selected').count() > 0 ){
+						t2.button(0).enable();
+					} else {
+						t2.button(0).disable();
+					}
+				}
+
+				// make sure that chnDataTable 'edit' and 'remove' button are activated only if 
+				// one channel is selected
+				function toggleChnDataTable_EditRemoveBtn() { 
+					var count = t2.rows('.selected').count();  
+					if ( count === 0 )
+						t2.buttons([1,2]).disable();
+					if ( count === 1 )
+						t2.buttons([1,2]).enable();
+					if (count > 1) {
+						t2.button(2).disable();
+						t2.button(1).enable();
+					}
+				}
+
+				t1.on( 'select', function (e,dt,type,index) {
+					toggleChnDataTable_NewBtn() ;
 				} );
+
+				t1.on( 'deselect', function (e,dt,type,index) {
+					toggleChnDataTable_NewBtn() ;
+				} );
+
+				t2.on( 'select', function (e,dt,type,index) {
+					toggleChnDataTable_EditRemoveBtn() ;
+				} );
+
+				t2.on( 'deselect', function (e,dt,type,index) {
+					toggleChnDataTable_EditRemoveBtn() ;
+				} );
+
+				//remove selected row in the t2 table
+				t2.button(1).action( function( event, dt, btn, config ) {
+					dt.rows('.selected').remove().draw();
+					if ( !t2.rows().count() === 0)
+						t2.button(1).disable();
+
+				});
+
+				function chnRowEditFormCreate(m,b) {
+					m.find('.modal-footer').append(
+						'<button type="button" class="btn btn-primary contextualItems" id="chnListModify" data-id="chn' +b.text() + '-btn">Save</button>'
+					//	'<input type="submit" class="btn btn-primary contextualItems" id="btn-newSetvalue" value="Save" form="formNewSetValue">'
+					);
+					m.find('.modal-title').text(b.text());
+					m.find('.modal-body').append(str_setvalueForm );
+					loadChnList();
+				}
+
+				// define the action for edit a row
+				t2.button(2).action( function(event,dt,button,config){
+						var m=$('#formModal');
+						var rowSelected = dt.rows( '.selected' );
+
+					if( rowSelected.count() === 1) {
+						chnRowEditFormCreate(m,button); 
+						console.log(rowSelected.data()[0]);	
+						$('#formModal *').filter('.chnDataTableAutoImport').each( function(i) {
+							$(this).val(rowSelected.data()[0][$(this).attr('id')]) ;
+						});
+					
+						m.modal('show'); 
+					} else {
+						alert( 'multi row edition is not implemented' );
+
+					}	
+
+				});
 
 				// define the action for the 'new row' button of t2 table
 				/*TODO:
@@ -191,17 +270,15 @@
 						the usage of <input type="submit" make the page reload => data loss
 				   */
 				t2.button(0).action ( function(event,dt,button, config ) {
-					$('#formModal').find('.modal-footer').append(
-						'<button type="button" class="btn btn-primary contextualItems" id="btn-newSetvalue">Save</button>'
-					//	'<input type="submit" class="btn btn-primary contextualItems" id="btn-newSetvalue" value="Save" form="formNewSetValue">'
-					);
-					$('#formModal').find('.modal-title').text(button.text());
-					$('#formModal').find('.modal-body').append(str_setvalueForm );
-					loadChnList();
-					$('#formModal').modal('show') 
+					var m=$('#formModal');
+					chnRowEditFormCreate(m,button) 
+					m.modal('show') 
 				});
 
-				$('#chnLabel').on('change', function(e) {
+				/*TODO: triggered when a new label is selected
+				  		should be use in order to autocomplete the form
+				*/
+				$(document).on('change', '#chnLabel', function(e) {
 						console.log("chocote");
 				});
 
@@ -214,23 +291,34 @@
 				/* ToDo:
 				       -  make this function more dynamiaue by using only the attribute id without the use of a classname
 				   */
-				$(document).on('click','#btn-newSetvalue', function(e) {
+				$(document).on('click','#chnListModify', function(e) {
+					//check who triggered the click event
+					var button = document.getElementById('chnListModify'); 
+					var recipient = button.dataset.id;
+					var allowedBtn = [ 'chnEdit-btn', 'chnNew-btn'] ;
+
+					//if it's not the chnEdit-btn or chnNew-btn just let a message in console.log but leave
+					if( $.inArray(recipient, allowedBtn) === -1 )
+				   		return;
+
 					var dt = $('#chnDataTable').DataTable();
 					var inputObj = {};
 
 					$('#formModal *').filter('.chnDataTableAutoImport').each( function(i) {
 						inputObj[$(this).attr('id')]= $(this).val() ;
 					});
-					
-					//var rowNode =dt.row.add(inputSet).draw().node();
-					dt.row.add(inputObj).draw();
+
+					//some times we will add a new row, in other case we will edit the existing row	
+					if( recipient === allowedBtn[1] ) {
+						dt.row.add(inputObj).draw();
+					} else { 
+						//we can use indexes as we're supposed to have only on row selected
+						//make sure it is always the case other wise it is a bug
+						var idx=dt.rows('.selected').indexes();
+						dt.row(idx).data(inputObj).draw();
+					}
 
 					$('#formModal').modal('hide'); 
-				});
-
-				//remove selected row in the t2 table
-				t2.button(1).action( function( event, dt, btn, config ) {
-					dt.rows('.selected').remove().draw();
 				});
 
 				

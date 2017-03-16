@@ -2,8 +2,7 @@
  * 1 - element of chnDataTableAutoImport class must have an id which match exactly the data columns field data field 
  */
 var str_setvalueForm = `
-	<form class="contextualItems" id="formNewSetValue">
-		<div class="form-group">
+		<div class="form-group contextualItems">
 			<label for="label" class="control-label">Label:</label> 
 			<input type="text" class="form-control chnDataTableAutoImport" id="chnLabel" list="chnLabelList" placeholder="Choose the channel to apply..." >  
 			<datalist id="chnLabelList"> 
@@ -12,18 +11,18 @@ var str_setvalueForm = `
 				<option value="tata"--> 
 			 </datalist>
 		</div>
-		<div class="form-group">
+		<div class="form-group contextualItems">
 			<label for="value" class="control-label">Value:</label>
 			<input type="number" class="form-control chnDataTableAutoImport" id="chnValue">
 		</div>
-		<div class="form-group">
+		<div class="form-group contextualItems">
 			<label for="trigger" class="control-label">Trigger:</label>
 			<select class="form-control chnDataTableAutoImport" id="chnTrigger" >
 				<option>Before</option>
 				<option>After</option>
 			</select>
 		</div>
-		<div class="form-group">
+		<div class="form-group contextualItems">
 			<label for="type" class="control-label">Type (optional):</label>
 			<select class="form-control chnDataTableAutoImport" id="chnType">
 				<option>Map</option>
@@ -33,7 +32,7 @@ var str_setvalueForm = `
 				<option>Draft</option>
 			</select>
 		</div>
-		<div class="form-group">
+		<div class="form-group contextualItems">
 			<label for="type" class="control-label">Unit (optional):</label>
 			<select class="form-control" id="chnUnit">
 				<option>-</option>
@@ -71,9 +70,8 @@ var str_setvalueForm = `
 				<option>Hz</option>  
 			</select> 
 		</div>
-		<div class="form-group">
+		<div class="form-group contextualItems">
 			<label for="description" class="control-label">Comment (optional):</label> 
 			<textarea class="form-control" rows="2" id="chnDesc">commentaires...</textarea> 
 		</div>
-	</form>
 `

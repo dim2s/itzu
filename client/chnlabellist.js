@@ -28,7 +28,7 @@ function loadChnList() {
 				});
 
 				// Update the placeholder text.
-				input.placeholder = "e.g. datalist";
+				input.placeholder = "Enter label you want to apply...";
 			} else {
 				// An error occured :(
 				input.placeholder = "Couldn't load datalist options :(";

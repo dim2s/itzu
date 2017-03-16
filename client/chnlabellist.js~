@@ -22,6 +22,7 @@ function loadChnList() {
 
 					//Set the value using the item in the JSON array.
 					option.value = item.NAME;
+					option.label = item.UNIT;
 					// Add the <option> element to the <datalist>.
 					dataList.appendChild(option);
 				});

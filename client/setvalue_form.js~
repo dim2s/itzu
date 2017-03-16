@@ -7,9 +7,9 @@ var str_setvalueForm = `
 			<label for="label" class="control-label">Label:</label> 
 			<input type="text" class="form-control chnDataTableAutoImport" id="chnLabel" list="chnLabelList" placeholder="Choose the channel to apply..." >  
 			<datalist id="chnLabelList"> 
-				<option value="toto"> 
+				<!--option value="toto"> 
 				<option value="titi"> 
-				<option value="tata"> 
+				<option value="tata"--> 
 			 </datalist>
 		</div>
 		<div class="form-group">

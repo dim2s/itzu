@@ -17,7 +17,7 @@
 	<link rel="stylesheet" type="text/css" href="libs/css/buttons.dataTables.min.css">
 	<link rel="stylesheet" type="text/css" href="libs/css/rowReorder.dataTables.min.css">
 	<link rel="stylesheet" type="text/css" href="libs/css/autoFill.dataTables.min.css">
-	<link rel="stylesheet" type="text/css" href="libs/css/chartist.min.css">
+	<!--link rel="stylesheet" type="text/css" href="libs/css/chartist.min.css"-->
 	<link rel="stylesheet" type="text/css" href="libs/css/active-control.css">
 
 	<body>
@@ -61,7 +61,11 @@
 			<div class="row">
 				<div class="col-sm-1"></div>
 				<div class="col-sm-10"> 
-					<div class="ct-chart ct-golden-section"></div>
+					<!--div class="ct-chart ct-golden-section"></div-->
+					<svg width="100%" height="300">
+						<circle cx="25" cy="60" r="6" fill="blue" /> 
+						<circle cx="59" cy="160" r="6" fill="blue" /> 
+					</svg>
 				</div>
 				<div class="col-sm-1"></div>
 			</div>
@@ -89,6 +93,7 @@
 		<script type="text/javascript" src="libs/dataTables.select.min.js"></script>
 		<!-- Buttons-1.2.4 Library -->
 		<script type="text/javascript" src="libs/dataTables.buttons.min.js"></script>
+		<script type="text/javascript" src="libs/buttons.html5.min.js"></script>
 		<!-- Rowreorder-1.2.0 Library -->
 		<script type="text/javascript" src="libs/dataTables.rowReorder.min.js"></script>
 		<!-- autofill 2.1.3 Library -->
@@ -96,7 +101,7 @@
 		<script type="text/javascript" src="client/chnModal.js"></script>
 		<script type="text/javascript" src="client/opModal.js"></script>
 		<script type="text/javascript" src="client/chnlabellist.js"></script>
-		<script src="libs/chartist.min.js"></script>
+		<!--script src="libs/chartist.min.js"></script-->
 
 		<script type="text/javascript">
 			/* unordered ToDo list:
@@ -184,14 +189,14 @@
 					rowId: "opId",
 					"columnDefs":[
 						{ orderable: false, targets: '_all'},
-						{ className: 'select-checkbox', targets: 0, width: "10px", defaultContent: "" },
-						{ title: "State",  targets:7 , data: null,       className:'active-control', defaultContent: "<i></i>" },
-						{ title: "#",      targets:1 , data: "opId",     className:'reorder', width: "10px", defaultContent: "" },
-						{visible: false , title: "Activ",  targets:6 , data: "opActive",  defaultContent: "1" },
-						{ title: "Mode",   targets:2 , data: "opMode" },
-						{ title: "Dyno",   targets:3 , data: "opDyno" },
-						{ title: "Engine", targets:4 , data: "opEngine"},
-						{ title: "Time",   targets:5 , data: "opTime"},
+						{ title: ""     ,  targets:0 , data: null,       className: 'select-checkbox',  width: "10px", defaultContent: "" },
+						{ title: "State",  targets:7 , data: null,       className: 'active-control', defaultContent: "<i></i>" },
+						{ title: "#",      targets:1 , data: "opId",     className: 'reorder export', width: "10px", defaultContent: "" },
+						{ title: "Activ",  targets:6 , data: "opActive", className: 'exportCSV', visible: false ,defaultContent: "1" },
+						{ title: "Mode",   targets:2 , data: "opMode" ,  className: 'exportCSV'},
+						{ title: "Dyno",   targets:3 , data: "opDyno" ,  className: 'exportCSV',},
+						{ title: "Engine", targets:4 , data: "opEngine", className: 'exportCSV'},
+						{ title: "Time",   targets:5 , data: "opTime" ,  className: 'exportCSV'},
 						
 					],
 					dom: '<"#opToolbar">Bfrtip',
@@ -200,7 +205,12 @@
 						{ text: 'Remove' },
 						{ text: 'Edit' },
 						{ text: 'Wizard' },
-						{ text: 'Export CSV' },
+						{ 
+							text: 'Export CSV', 
+							extend: 'csvHtml5',
+							fieldSeparator: ';',
+							exportOptions: { columns: '.exportCSV'}
+						} ,
 						{ text: 'Import CSV' }
 					],
 					autoFill:{
@@ -421,13 +431,13 @@
 
 		</script>
 
-		<script>
+		<!--script>
 		  // Initialize a Line chart in the container with the ID chart1
 		    new Chartist.Line('.ct-chart', {
 		        labels: [1500, 1750, 2000, 2250],
 			    series: [[100, 120, 180, 200]]
 		    }, { width: '100%', height: '500px'});
 
-		</script>
+		</script-->
 	</body>
 </html>

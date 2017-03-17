@@ -1,10 +1,10 @@
 /* Note:
- * 1 - element of chnDataTableAutoImport class must have an id which match exactly the data columns field data field 
+ * 1 - element of dataTableAutoImport class must have an id which match exactly the data columns field data field 
  */
-var str_setvalueForm = `
+var str_chnModal = `
 		<div class="form-group contextualItems">
 			<label for="label" class="control-label">Label:</label> 
-			<input type="text" class="form-control chnDataTableAutoImport" id="chnLabel" list="chnLabelList" placeholder="Choose the channel to apply..." >  
+			<input type="text" class="form-control dataTableAutoImport" id="chnLabel" list="chnLabelList" placeholder="Choose the channel to apply..." >  
 			<datalist id="chnLabelList"> 
 				<!--option value="toto"> 
 				<option value="titi"> 
@@ -13,18 +13,18 @@ var str_setvalueForm = `
 		</div>
 		<div class="form-group contextualItems">
 			<label for="value" class="control-label">Value:</label>
-			<input type="number" class="form-control chnDataTableAutoImport" id="chnValue">
+			<input type="number" class="form-control dataTableAutoImport" id="chnValue">
 		</div>
 		<div class="form-group contextualItems">
 			<label for="trigger" class="control-label">Trigger:</label>
-			<select class="form-control chnDataTableAutoImport" id="chnTrigger" >
+			<select class="form-control dataTableAutoImport" id="chnTrigger" >
 				<option>Before</option>
 				<option>After</option>
 			</select>
 		</div>
 		<div class="form-group contextualItems">
 			<label for="type" class="control-label">Type (optional):</label>
-			<select class="form-control chnDataTableAutoImport" id="chnType">
+			<select class="form-control dataTableAutoImport" id="chnType">
 				<option>Map</option>
 				<option>Curve</option>
 				<option>Value</option>
@@ -34,7 +34,7 @@ var str_setvalueForm = `
 		</div>
 		<div class="form-group contextualItems">
 			<label for="type" class="control-label">Unit (optional):</label>
-			<select class="form-control" id="chnUnit">
+			<select class="form-control dataTableAutoImport" id="chnUnit">
 				<option>-</option>
 				<option>km/h</option>
 				<option>m/s</option>
@@ -72,6 +72,6 @@ var str_setvalueForm = `
 		</div>
 		<div class="form-group contextualItems">
 			<label for="description" class="control-label">Comment (optional):</label> 
-			<textarea class="form-control" rows="2" id="chnDesc">commentaires...</textarea> 
+			<textarea class="form-control dataTableAutoImport" rows="2" id="chnDesc">commentaires...</textarea> 
 		</div>
 `

@@ -1,0 +1,11 @@
+td.active-control {
+	background : url('../images/ok-circle.png') center center no-repeat;
+	cursor: pointer;
+}
+
+tr.ban td.active-control {
+	background : url('../images/ban-circle.png') center center no-repeat;
+	cursor: pointer;
+}
+
+

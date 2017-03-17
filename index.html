@@ -18,6 +18,7 @@
 	<link rel="stylesheet" type="text/css" href="libs/css/rowReorder.dataTables.min.css">
 	<link rel="stylesheet" type="text/css" href="libs/css/autoFill.dataTables.min.css">
 	<link rel="stylesheet" type="text/css" href="libs/css/chartist.min.css">
+	<link rel="stylesheet" type="text/css" href="libs/css/active-control.css">
 
 	<body>
 		<nav class="navbar navbar-inverse navbar-fixed-top">
@@ -47,7 +48,7 @@
 						<h4 class="modal-title">Modal Header</h4>
 					</div>
 					<div class="modal-body">
-						<p>Some text in the modal.</p>
+						<!--p>Some text in the modal.</p-->
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -92,7 +93,8 @@
 		<script type="text/javascript" src="libs/dataTables.rowReorder.min.js"></script>
 		<!-- autofill 2.1.3 Library -->
 		<script type="text/javascript" src="libs/dataTables.autoFill.min.js"></script>
-		<script type="text/javascript" src="client/setvalue_form.js"></script>
+		<script type="text/javascript" src="client/chnModal.js"></script>
+		<script type="text/javascript" src="client/opModal.js"></script>
 		<script type="text/javascript" src="client/chnlabellist.js"></script>
 		<script src="libs/chartist.min.js"></script>
 
@@ -111,14 +113,30 @@
 			   - group row by type ( channel tab uniquement )
 			   - remplacer yes/no de la colonne ACTIV par une image clickable toggle
 			   - limit the number of row datalist can show ( or use JQuery flexdatalist plugin )
-			   - use the name of button instead of their indexes
+			   - use the name of button instead of their indexes ( it can cause some bug if the order is changed )
 			   - autocomplete unit, description and type base on label selection
 			   - disable remove and edit button when they are not necessary (0 or multi rows selected)
+			   - implement local storage feature
 			   */
 			$(document).ready(function() {
+
+				$('[data-toggle="popover"]').popover();
+
 				var dataSet =[
-					["", "1", "YES", "N/C_BRT_5H","1500", "10", "45", ""] ,
-					["", "2", "YES", "N/X","1600", "20", "45", ""] ,
+					{"opId": "1", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1500", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "2", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1600", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "3", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1700", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "4", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1800", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "5", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1900", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "6", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2000", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "7", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2100", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "8", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2200", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "9", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2300", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "10", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2400", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "11", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2500", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "12", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2600", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "13", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2700", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "14", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2800", "opEngine":"10", "opTime":"45"}
 				];
 
 				//common Datatables properties
@@ -136,13 +154,22 @@
 				var t2 = $('#chnDataTable').DataTable({
 					columnDefs:[
 						{className: 'select-checkbox', targets: 0, width: "10px", defaultContent: ""},
-						{title:"Label", targets:1, className: "chnLabel", data: "chnLabel"},
-						{title:"Value",  targets:2, classNeme: "chnValue", data: "chnValue" },
+						{
+							title:"Label", 
+							targets:1, 
+							className: "chnLabel", 
+							data: "chnLabel", 
+							render: function (d,t,r,m) { 
+								return "<a href='#' data-toggle='popover' data-placement='bottom' data-container='body' data-content='"+r['chnDesc'] +"'>"+ d + "</a>"  ;}
+							},
+						{title:"Value",  targets:2, className: "chnValue", data: "chnValue", render: function( d,t,r,m) {return d+" "+r["chnUnit"];} },
 						{title:"Trigger", targets:3, className: "chnTrigger", data: "chnTrigger"},
-						{title:"Type", targets:4, className : "chnType", data: "chnType" , name: "chnType"} 
+						{title:"Type", targets:4, className : "chnType", data: "chnType" , name: "chnType", visible: false} ,
+						{title:"Unit", targets:5, className : "chnUnit", data: "chnUnit", visible: false }, 
+						{title:"Desc", targets:6, className : "chnDesc", data: "chnDesc" , visible: false} 
 
 						],
-					dom: 'Bfrtip',
+						dom: '<"#chnToolbar">Bfrtip',
 					buttons: [ // ** do not change the name attribute **
 						{ text:"New", name: "chnNew-btn"},
 						{ text:"Remove", name: "chnRemove-btn" },
@@ -154,18 +181,20 @@
 					
 				var t1 = $('#opDataTable').DataTable({
 					data: dataSet,
+					rowId: "opId",
 					"columnDefs":[
 						{ orderable: false, targets: '_all'},
-						{ className: 'select-checkbox', targets: 0, width: "10px"},
-						{ className: 'reorder', title: "#",targets:1, width: "10px" },
-						{ title: "Activ", targets:2 , width: "30px" },
-						{ title: "Mode", targets:3 ,  },
-						{ title: "Dyno", targets:4 ,  },
-						{ title: "Engine", targets:5 ,  },
-						{ title: "Time", targets:6,  },
+						{ className: 'select-checkbox', targets: 0, width: "10px", defaultContent: "" },
+						{ title: "State",  targets:7 , data: null,       className:'active-control', defaultContent: "<i></i>" },
+						{ title: "#",      targets:1 , data: "opId",     className:'reorder', width: "10px", defaultContent: "" },
+						{visible: false , title: "Activ",  targets:6 , data: "opActive",  defaultContent: "1" },
+						{ title: "Mode",   targets:2 , data: "opMode" },
+						{ title: "Dyno",   targets:3 , data: "opDyno" },
+						{ title: "Engine", targets:4 , data: "opEngine"},
+						{ title: "Time",   targets:5 , data: "opTime"},
 						
 					],
-					dom: 'Bfrtip',
+					dom: '<"#opToolbar">Bfrtip',
 					buttons: [
 						{ text: 'New' },
 						{ text: 'Remove' },
@@ -182,7 +211,15 @@
 
 				// at the begining there is no row so there is no possibility to 
 				// remove, edit or merge a row
+				if (t1.rows().count() === 0)
+					t1.buttons([1,2,4]).disable();
+
 				t2.buttons([0,1,2,3]).disable();
+
+
+				// toolbar definition
+				$('#opToolbar').html('<h4>Operating points definition</h4>');
+				$('#chnToolbar').html('<h4>Channels definition</h4>');
 
 				// make sure that chnDataTable 'new' button is activated only if 
 				// one operating point is selected
@@ -194,17 +231,20 @@
 					}
 				}
 
-				// make sure that chnDataTable 'edit' and 'remove' button are activated only if 
-				// one channel is selected
-				function toggleChnDataTable_EditRemoveBtn() { 
-					var count = t2.rows('.selected').count();  
+
+				// rules:  
+				// 	* you can edit only one item at the time
+				//  * you can remove several rows at the same time
+			   //   * items should be selected to be edit or remove	
+				function toggleDataTable_EditRemoveBtn( dt ) { 
+					var count = dt.rows('.selected').count();  
 					if ( count === 0 )
-						t2.buttons([1,2]).disable();
+						dt.buttons([1,2]).disable();
 					if ( count === 1 )
-						t2.buttons([1,2]).enable();
+						dt.buttons([1,2]).enable();
 					if (count > 1) {
-						t2.button(2).disable();
-						t2.button(1).enable();
+						dt.button(2).disable();
+						dt.button(1).enable();
 					}
 				}
 
@@ -216,50 +256,100 @@
 					toggleChnDataTable_NewBtn() ;
 				} );
 
+				t1.on( 'select', function (e,dt,type,index) {
+					toggleDataTable_EditRemoveBtn(dt) ;
+				} );
+
+				t1.on( 'deselect', function (e,dt,type,index) {
+					toggleDataTable_EditRemoveBtn(dt) ;
+				} );
+
 				t2.on( 'select', function (e,dt,type,index) {
-					toggleChnDataTable_EditRemoveBtn() ;
+					toggleDataTable_EditRemoveBtn(dt) ;
 				} );
 
 				t2.on( 'deselect', function (e,dt,type,index) {
-					toggleChnDataTable_EditRemoveBtn() ;
+					toggleDataTable_EditRemoveBtn(dt) ;
 				} );
+
+				// toggle Activ cell value on click
+				$('#opDataTable tbody').on( 'click', 'td.active-control' , function () {
+
+						var tr = $(this).closest('tr');
+						var tr_idx = tr.index();
+						var d = t1.row(tr_idx).data();
+
+						if ( d["opActive"] === 0 ){
+							d["opActive"] = 1;
+							tr.removeClass( 'ban');
+						}else{
+							d["opActive"] = 0;
+							tr.addClass( 'ban');
+						}
+
+						t1.row(tr_idx).data(d).draw();
+				});
 
 				//remove selected row in the t2 table
 				t2.button(1).action( function( event, dt, btn, config ) {
-					dt.rows('.selected').remove().draw();
-					if ( t2.rows().count() === 0)
-						t2.buttons([1,2]).disable();
-
+					removeRows(event, dt, btn, config);
 				});
 
-				function chnRowEditFormCreate(m,b) {
+				t1.button(1).action( function( event, dt, btn, config ) {
+					removeRows(event, dt, btn, config);
+				});
+
+
+				function removeRows(event, dt, btn, config) {
+					dt.rows('.selected').remove().draw();
+					if ( dt.rows().count() === 0)
+						dt.buttons([1,2]).disable();
+				};
+
+				//type = 'chn' or 'op' 
+				//mais est-ce vraiment necessaire puisqu'il s'agit de la meme fenetre
+				function rowEditFormCreate(b,str,dt_id) {
+					var m=$('#formModal');
 					m.find('.modal-footer').append(
-						'<button type="button" class="btn btn-primary contextualItems" id="chnListModify" data-id="chn' +b.text() + '-btn">Save</button>'
+						'<button type="button" class="btn btn-primary contextualItems" id="ListModify" data-tableid="' +dt_id+ '" data-btntype="'+b.text()+'">Save</button>'
 					//	'<input type="submit" class="btn btn-primary contextualItems" id="btn-newSetvalue" value="Save" form="formNewSetValue">'
 					);
 					m.find('.modal-title').text(b.text());
-					m.find('.modal-body').append(str_setvalueForm );
-					loadChnList();
+					m.find('.modal-body').append(str);
+
+					//initialize the datalist only for chnDataTable
+					if ( dt_id === 'chnDataTable' )
+						loadChnList();
+
+					return m;
 				}
 
-				// define the action for edit a row
-				t2.button(2).action( function(event,dt,button,config){
-						var m=$('#formModal');
-						var rowSelected = dt.rows( '.selected' );
+				function editRow(e,dt,button,template) {
+
+					var rowSelected = dt.rows( '.selected' );
 
 					if( rowSelected.count() === 1) {
-						chnRowEditFormCreate(m,button); 
+						var m= rowEditFormCreate(button,template,dt.table().node().id ); 
 						console.log(rowSelected.data()[0]);	
-						$('#formModal *').filter('.chnDataTableAutoImport').each( function(i) {
+						$('#formModal *').filter('.dataTableAutoImport').each( function(i) {
 							$(this).val(rowSelected.data()[0][$(this).attr('id')]) ;
 						});
 					
 						m.modal('show'); 
 					} else {
-						alert( 'multi row edition is not implemented' );
+						alert( 'something goes wrong! you should not be in this state....' );
 
 					}	
 
+				}
+
+				// define the action for edit a row
+				t2.button(2).action( function(event,dt,button,config){
+					editRow(event,dt,button,str_chnModal);
+				});
+
+				t1.button(2).action( function(event,dt,button,config){
+					editRow(event,dt,button,str_opModal);
 				});
 
 				// define the action for the 'new row' button of t2 table
@@ -270,11 +360,14 @@
 						the usage of <input type="submit" make the page reload => data loss
 				   */
 				t2.button(0).action ( function(event,dt,button, config ) {
-					var m=$('#formModal');
-					chnRowEditFormCreate(m,button) 
-					m.modal('show') 
+					rowEditFormCreate(button,str_chnModal,dt.table().node().id).modal('show');
 				});
 
+				t1.button(0).action ( function(event,dt,button, config ) {
+					rowEditFormCreate(button,str_opModal,dt.table().node().id).modal('show');
+				});
+
+				/*TODO: triggered when a new label is selected
 				/*TODO: triggered when a new label is selected
 				  		should be use in order to autocomplete the form
 				*/
@@ -290,21 +383,23 @@
 				//new row, save modal handler
 				/* ToDo:
 				       -  make this function more dynamiaue by using only the attribute id without the use of a classname
+					   - dynamically retrieve the available datatable id ( if possible )
 				   */
-				$(document).on('click','#chnListModify', function(e) {
+				$(document).on('click','#ListModify', function(e) {
 					//check who triggered the click event
-					var button = document.getElementById('chnListModify'); 
-					var recipient = button.dataset.id;
-					var allowedBtn = [ 'chnEdit-btn', 'chnNew-btn'] ;
+					var button = document.getElementById('ListModify'); 
+					var table_id = '#'+button.dataset.tableid;
+					var recipient = button.dataset.btntype;
+					var allowedBtn = [ 'Edit', 'New'] ;
 
 					//if it's not the chnEdit-btn or chnNew-btn just let a message in console.log but leave
 					if( $.inArray(recipient, allowedBtn) === -1 )
 				   		return;
 
-					var dt = $('#chnDataTable').DataTable();
+					var dt = $(table_id).DataTable();
 					var inputObj = {};
 
-					$('#formModal *').filter('.chnDataTableAutoImport').each( function(i) {
+					$('#formModal *').filter('.dataTableAutoImport').each( function(i) {
 						inputObj[$(this).attr('id')]= $(this).val() ;
 					});
 

@@ -5,12 +5,12 @@ var str_opModal = `
 		<div class="form-group contextualItems">
 			<label for="type" class="control-label">Mode:</label>
 			<select class="form-control dataTableAutoImport" id="opMode">
-				<option>N/ACCEL</option>
-				<option>N/C_BRT_5H</option>
-				<option>N/X_VALUE</option>
-				<option>C_BRT_5H/ACCEL</option>
-				<option>C_BRT_5H/N</option>
-				<option>C_BRT_5H/X_VALUE</option>
+				<option >N/ACCEL</option><!--value=8-->
+				<option >N/C_BRT_5H</option><!--value=12-->
+				<option >N/X_VALUE</option><!--value=16-->
+				<option >C_BRT_5H/ACCEL</option><!--value=11-->
+				<option >C_BRT_5H/N</option><!--value=13-->
+				<option >C_BRT_5H/X_VALUE</option><!--value=17-->
 			</select>
 		</div>
 		<div class="form-group contextualItems">

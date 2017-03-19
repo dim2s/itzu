@@ -131,8 +131,8 @@
 				vect = [];
 				for ( var i=0 ; i < x_tab.length; i++ ) {
 					var node = {};
-					node.x = x_tab[i];
-					node.y = y_tab[i];
+					node.x = parseInt(x_tab[i]);
+					node.y = parseInt(y_tab[i]);
 					node.label = idx_tab[i];
 					vect.push(node);
 				}
@@ -144,10 +144,10 @@
 					{x:20,  y:-200, label:"3"},
 					{x:-100,y:300,  label:"4"},
 					{x:400, y:1400, label:"5"},
-					{x:50,  y:300,  lable:"6"}
+					{x:50,  y:300,  label:"6"}
 			   	];
 */
-				var radius = 9;
+				var radius = 4;
 
 				// set the dimensions and margins of the graph
 				//ToDo: set the by percent
@@ -168,8 +168,8 @@
 				var y = d3.scaleLinear().range([height,0]);
 
 				// Scale the range of the data
-				x.domain([d3.min(vect, function(d) { return d.x;}) ,d3.max(vect, function(d) { return d.x; })]);
-				y.domain([d3.min(vect, function(d) { return d.y;}) ,d3.max(vect, function(d) { return d.y; })]);
+				x.domain([d3.min(vect, function(d) { return d.x; }) -100 , d3.max(vect, function(d) { return d.x; }) +100]);
+				y.domain([d3.min(vect, function(d) { return d.y; })  ,d3.max(vect, function(d) { return d.y ; })]);
 
 				 //Add the SVG  text element to the svg container
 				var text = svgContainer.selectAll("text")
@@ -359,9 +359,9 @@
 				});
 
 				
-				draw_plot( t1.column(3).data(), t1.column(4).data(), t1.column(1).data());
 				// at the begining there is no row so there is no possibility to 
 				// remove, edit or merge a row
+				draw_plot( t1.column(3).data(), t1.column(4).data(), t1.column(1).data());
 				if (t1.rows().count() === 0)
 					t1.buttons([1,2,4]).disable();
 
@@ -398,6 +398,11 @@
 						dt.button(1).enable();
 					}
 				}
+
+				t1.on( 'draw', function (e,dt,type,index) {
+					d3.selectAll("#svgContainer > *").remove();
+					draw_plot( t1.column(3).data(), t1.column(4).data(), t1.column(1).data());
+				} );
 
 				t1.on( 'select', function (e,dt,type,index) {
 					toggleChnDataTable_NewBtn() ;

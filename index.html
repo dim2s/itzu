@@ -126,8 +126,18 @@
 			   - implement local storage feature
 			   */
 
-			function draw_plot() {
+			function draw_plot(x_tab, y_tab, idx_tab ) {
+				//Todo: check that they all have the same sise...
+				vect = [];
+				for ( var i=0 ; i < x_tab.length; i++ ) {
+					var node = {};
+					node.x = x_tab[i];
+					node.y = y_tab[i];
+					node.label = idx_tab[i];
+					vect.push(node);
+				}
 
+/*
 				var vect = [ 
 					{x:0,   y:0,    label:"1"},
 					{x:100, y:10,   label:"2"},
@@ -136,7 +146,7 @@
 					{x:400, y:1400, label:"5"},
 					{x:50,  y:300,  lable:"6"}
 			   	];
-
+*/
 				var radius = 9;
 
 				// set the dimensions and margins of the graph
@@ -230,23 +240,48 @@
 			$(document).ready(function() {
 
 				$('[data-toggle="popover"]').popover();
-				draw_plot();
 
 				var dataSet =[
 					{"opId": "1", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1500", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "1", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1500", "opEngine":"30", "opTime":"45"} ,
+					{"opId": "1", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1500", "opEngine":"50", "opTime":"45"} ,
+					{"opId": "1", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1500", "opEngine":"70", "opTime":"45"} ,
+					{"opId": "1", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1500", "opEngine":"90", "opTime":"45"} ,
 					{"opId": "2", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1600", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "2", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1600", "opEngine":"30", "opTime":"45"} ,
+					{"opId": "2", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1600", "opEngine":"50", "opTime":"45"} ,
+					{"opId": "2", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1600", "opEngine":"70", "opTime":"45"} ,
+					{"opId": "2", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1600", "opEngine":"90", "opTime":"45"} ,
 					{"opId": "3", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1700", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "3", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1700", "opEngine":"30", "opTime":"45"} ,
+					{"opId": "3", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1700", "opEngine":"50", "opTime":"45"} ,
+					{"opId": "3", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1700", "opEngine":"70", "opTime":"45"} ,
+					{"opId": "3", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1700", "opEngine":"90", "opTime":"45"} ,
 					{"opId": "4", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1800", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "4", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1800", "opEngine":"30", "opTime":"45"} ,
+					{"opId": "4", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1800", "opEngine":"50", "opTime":"45"} ,
+					{"opId": "4", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1800", "opEngine":"70", "opTime":"45"} ,
+					{"opId": "4", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1800", "opEngine":"90", "opTime":"45"} ,
 					{"opId": "5", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1900", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "5", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1900", "opEngine":"30", "opTime":"45"} ,
+					{"opId": "5", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1900", "opEngine":"50", "opTime":"45"} ,
+					{"opId": "5", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1900", "opEngine":"70", "opTime":"45"} ,
+					{"opId": "5", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1900", "opEngine":"90", "opTime":"45"} ,
 					{"opId": "6", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2000", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "6", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2000", "opEngine":"30", "opTime":"45"} ,
+					{"opId": "6", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2000", "opEngine":"50", "opTime":"45"} ,
+					{"opId": "6", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2000", "opEngine":"70", "opTime":"45"} ,
+					{"opId": "6", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2000", "opEngine":"90", "opTime":"45"} ,
 					{"opId": "7", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2100", "opEngine":"10", "opTime":"45"} ,
+					{"opId": "7", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2100", "opEngine":"30", "opTime":"45"} ,
+					{"opId": "7", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2100", "opEngine":"50", "opTime":"45"} ,
+					{"opId": "7", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2100", "opEngine":"70", "opTime":"45"} ,
+					{"opId": "7", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2100", "opEngine":"90", "opTime":"45"} ,
 					{"opId": "8", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2200", "opEngine":"10", "opTime":"45"} ,
-					{"opId": "9", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2300", "opEngine":"10", "opTime":"45"} ,
-					{"opId": "10", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2400", "opEngine":"10", "opTime":"45"} ,
-					{"opId": "11", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2500", "opEngine":"10", "opTime":"45"} ,
-					{"opId": "12", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2600", "opEngine":"10", "opTime":"45"} ,
-					{"opId": "13", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2700", "opEngine":"10", "opTime":"45"} ,
-					{"opId": "14", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2800", "opEngine":"10", "opTime":"45"}
+					{"opId": "8", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2200", "opEngine":"30", "opTime":"45"} ,
+					{"opId": "8", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2200", "opEngine":"50", "opTime":"45"} ,
+					{"opId": "8", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2200", "opEngine":"70", "opTime":"45"} ,
+					{"opId": "8", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2200", "opEngine":"90", "opTime":"45"} 
 				];
 
 				//common Datatables properties
@@ -323,7 +358,8 @@
 					}	 
 				});
 
-
+				
+				draw_plot( t1.column(3).data(), t1.column(4).data(), t1.column(1).data());
 				// at the begining there is no row so there is no possibility to 
 				// remove, edit or merge a row
 				if (t1.rows().count() === 0)

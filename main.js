@@ -26,6 +26,13 @@ app.get('/chnlabellist.json', function(req,res){
 	});
 });
 
+app.get('/opImport.json', function(req,res){
+	fs.readFile('./data/opImport.json', 'utf-8', function( error, content) {
+		res.setHeader('Content-Type','text/html');
+		res.end(content);
+	});
+});
+
 app.use(function(req, res, next){
     res.setHeader('Content-Type', 'text/plain');
     res.send(404, 'Page introuvable !');

@@ -1,0 +1,17 @@
+.line {
+	fill: none;
+	stroke: grey;
+	stroke-width: 2px;
+	stroke-dasharray:  5,5 ;
+}
+
+circle {
+	fill: white;
+	stroke: steelblue;
+	stroke-width: 3px;
+}
+
+.selected {
+	fill: red;
+}
+

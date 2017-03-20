@@ -17,8 +17,8 @@
 	<link rel="stylesheet" type="text/css" href="libs/css/buttons.dataTables.min.css">
 	<link rel="stylesheet" type="text/css" href="libs/css/rowReorder.dataTables.min.css">
 	<link rel="stylesheet" type="text/css" href="libs/css/autoFill.dataTables.min.css">
-	<!--link rel="stylesheet" type="text/css" href="libs/css/chartist.min.css"-->
 	<link rel="stylesheet" type="text/css" href="libs/css/active-control.css">
+	<link rel="stylesheet" type="text/css" href="libs/css/graph.css">
 
 	<body>
 		<nav class="navbar navbar-inverse navbar-fixed-top">
@@ -62,23 +62,12 @@
 			<div class="row">
 				<div class="col-sm-1"></div>
 				<div class="col-sm-11" id="svgContainer"> 
-					<!--div class="ct-chart ct-golden-section"></div>
-					<svg width="100%" height="300">
-						<circle cx="25" cy="60" r="6" fill="blue" /> 
-						<circle cx="59" cy="160" r="6" fill="blue" /> 
-					</svg-->
 				</div>
 			</div>
 			<div class="row"> 
 				<div class="col-sm-1"></div>
 				<div class="col-sm-6">
 					<table id="opDataTable" class="display" cellspacing="0" width="100%"> </table>
-					<br>
-					<div>
-						<button type='button' class='btn btn-primary btn-lg' id='saveButton' value='Save' data-toggle='modal' data-target='#formModal'>Save</button>
-						<button type='button' class='btn btn-default btn-lg' id='cancelButton' value='Cancel'>Cancel</button>
-						<span id='messages'>&nbsp;</span>
-					</div>
 				</div>
 				<div class="col-sm-5">
 					<table id="chnDataTable" class="display" cellspacing="0" width="100%"> </table>
@@ -125,74 +114,128 @@
 			   - disable remove and edit button when they are not necessary (0 or multi rows selected)
 			   - implement local storage feature
 			   */
-
-			function draw_plot(x_tab, y_tab, idx_tab ) {
-				//Todo: check that they all have the same sise...
-				vect = [];
-				for ( var i=0 ; i < x_tab.length; i++ ) {
-					var node = {};
-					node.x = parseInt(x_tab[i]);
-					node.y = parseInt(y_tab[i]);
-					node.label = idx_tab[i];
-					vect.push(node);
-				}
-
-/*
-				var vect = [ 
-					{x:0,   y:0,    label:"1"},
-					{x:100, y:10,   label:"2"},
-					{x:20,  y:-200, label:"3"},
-					{x:-100,y:300,  label:"4"},
-					{x:400, y:1400, label:"5"},
-					{x:50,  y:300,  label:"6"}
-			   	];
-*/
-				var radius = 4;
+			function draw_plot(dt ) {
+			//function draw_plot(x_tab, y_tab, idx_tab ) {
+			/*Todo: 
+			  - check that they all have the same sise...
+			  - mettre une valeur par defaut pour le label, au cas ou l'utilisateur ne le fait pas
+			  */
+				var vect = [];
+				var radius = 6;
+				// draw N/Torque and torque/N axis
+				var y = { min:0 , max:120}; //Torque default range
+				var x = { min:800 , max:3000}; //Speed default range
 
 				// set the dimensions and margins of the graph
 				//ToDo: set the by percent
-				var margin = {top: 20, right: 150, bottom: 30, left: 50},
-					    width = 1200 - margin.left - margin.right,
-						height = 500 - margin.top - margin.bottom;
+				var margin = {top: 20, right: 150, bottom: 30, left: 50};
+			    var width = 1200 - margin.left - margin.right;
+				var	height = 500 - margin.top - margin.bottom;
+
+				var dt_rows = dt.rows(':not(.ban)');
+
+				function handleMouseClick(d, i){
+					var circle_selected = d3.select(this).classed("selected");
+
+					//toggle ".selected" circle class
+					d3.select(this).classed("selected", !circle_selected);
+
+					//toggle row select state
+					if (circle_selected) {
+						$('#opDataTable').DataTable().row(d.idx).deselect();
+					} else {
+						$('#opDataTable').DataTable().row(d.idx).select();
+					}
+				}
+
+				// Create event handlers for mouse out circle
+				function handleMouseOut(d, i){
+					d3.select(this)
+						.attr("fill", "black" )
+						.attr("r", radius );
+					
+				}
+
+				// Create event handlers for mouse over circle
+				function handleMouseOver(d, i){
+					d3.select(this)
+						.attr("fill", "orange")
+						.attr("r", radius * 2);
+					
+				}
+
+				
+				for (var i=0; i < dt_rows.data().length; i++ ){
+					var node = {};
+					node.x = parseInt(dt_rows.data()[i].opDyno);
+					node.y = parseInt(dt_rows.data()[i].opEngine);
+					node.idx = i; //parseInt(dt_rows.data()[i].opId);
+					vect.push(node);
+				}
+
 
 				// create svg container
 				var svgContainer=d3.select("#svgContainer").append("svg")
 					.attr("width", width + margin.left + margin.right)
-					.attr("height", height + margin.top + margin.bottom)
+					.attr("height", height + margin.top + margin.bottom);
+
+				svgContainer
 					.append("g")
-					.attr("transform", "translate("+ margin.left + "," + margin.top + ")")
 					.style("border", "1px solid black");
 
-				// set the ranges
-				var x = d3.scaleLinear().range([0, width]);
-				var y = d3.scaleLinear().range([height,0]);
 
-				// Scale the range of the data
-				x.domain([d3.min(vect, function(d) { return d.x; }) -100 , d3.max(vect, function(d) { return d.x; }) +100]);
-				y.domain([d3.min(vect, function(d) { return d.y; })  ,d3.max(vect, function(d) { return d.y ; })]);
+				var min_y = d3.min(vect, function(d) { return d.y; });
+				var max_y = d3.max(vect, function(d) { return d.y; });
+				var min_x = d3.min(vect, function(d) { return d.x; });
+				var max_x = d3.max(vect, function(d) { return d.x; });
+				
+				// reset the domain boudaries if necessary. deals with NaN cases!!!! 
+				if ( min_y < y.min ) 
+					y.min = min_y;
 
-				 //Add the SVG  text element to the svg container
-				var text = svgContainer.selectAll("text")
-					.data(vect)
-					.enter()
-					.append("text");
+				if ( max_y > y.max )
+					y.max = max_y;
 
-				// Add SVG Text element attributes
-				var textLabels = text
-					.attr("x", function(d) { return x(d.x); })
-					.attr("y", function(d) { return y(d.y); })
-					.text ( function (d) { return d.label; } );
+				if ( min_x < x.min )
+					x.min = min_x;
+
+				if ( max_y > x.max )
+					x.max = max_x;
+
+				var xScale = d3.scaleLinear()
+					.range([0, width])
+					.domain([ x.min , x.max ]);
+
+				var yScale = d3.scaleLinear()
+					.range([height,0])
+					.domain([ y.min, y.max]);
+
+				// set label for the Y Axis
+				// Todo: the text value must be set dynamicly depending of the data
+				svgContainer.append("text")
+					.attr("y", 0 - margin.top)
+					.attr("x", 0 - margin.left/2)
+					.attr("dy", "1em")
+					.text("Torque");
+				
+				// set label for the X Axis
+				svgContainer.append("text")
+					.attr("y", height + margin.bottom/4 )
+					.attr("x", width )
+					.attr("dx", "1em")
+					.text("N");
 
 				 // Add the X Axis
 				 svgContainer.append("g")
 					 .attr("class", "axis")
-					 .attr("transform", "translate(0," + height + ")")
-					 .call(d3.axisBottom(x));
+					 .attr("transform", "translate("+margin.left +"," + height +  ")")
+					 .call(d3.axisBottom(xScale));
 
 				 // Add the Y Axis
 				 svgContainer.append("g")
 					 .attr("class", "axis")
-					 .call(d3.axisLeft(y));
+					.attr("transform", "translate("+  margin.left + "," + margin.bottom + ")")
+					 .call(d3.axisLeft(yScale));
 
 				// arrow-head
 				svgContainer.append("svg:defs")
@@ -206,34 +249,78 @@
 					.append("path")
 					.attr("d", "M2,2 L2,11 L10,6 L2,2")
 					.style("fill", "black");
+/*
+				$('#svgContainer').on( 'dblclick',  function () {
+						alert("jquery double click");
+				});
+*/
 
-				//draw circles 
-				svgContainer
-					.selectAll("circle").data(vect).enter()
-					.append("circle")
-					.attr("cx",  function (d){ return x(d.x); }) 
-					.attr("cy",  function (d){ return y(d.y); }) 
-					.attr("r", radius )
-					.style("fill", "red");
+				// On Click, we want to add data to the array and chart
+				svgContainer.on("dblclick", function() {
+		/*			var coords = d3.mouse(this);
+
+				    // Normally we go from data to pixels, but here we're doing pixels to data
+				    var newData= {
+				         x: Math.round( xScale.invert(coords[0])),  // Takes the pixel number to convert to number
+				         y: Math.round( yScale.invert(coords[1]))
+				     };
+
+				    dataset.push(newData);   // Push data to our array
+
+					svg.selectAll("circle")  // For new circle, go through the update process
+					  .data(dataset)
+					  .enter()
+					  .append("circle")
+					  .attr(circleAttrs)  // Get attributes from circleAttrs var
+		            .on("mouseover", handleMouseOver)
+					.on("mouseout", handleMouseOut);*/
+
+					alert("svg double click ajoute un pdf!!!!!");
+        });
+
+				if ( vect.length > 0 ) {
+					//draw circles 
+					svgContainer
+						.selectAll("circle").data(vect).enter()
+						.append("circle")
+						.attr("class", "active") 
+						.attr("cx",  function (d){ return xScale(d.x); }) 
+						.attr("cy",  function (d){ return yScale(d.y); }) 
+						.attr("id",  function (d){ return d.idx; }) 
+						.attr("r", radius )
+						//.on("dblclick", handleMouseClick)
+						.on("click", handleMouseClick)
+						/*.on("mouseout", handleMouseOut)
+						.on("mouseover", handleMouseOver)*/;
 
 
-				//draw lines
-				var lineFunction = d3.line()
-					.x( function(d) { return x(d.x); } )
-					.y( function(d) { return y(d.y); } )
-					.curve( d3.curveLinear );
+					//draw lines
+					var lineFunction = d3.line()
+						.x( function(d) { return xScale(d.x); } )
+						.y( function(d) { return yScale(d.y); } )
+						.curve( d3.curveLinear );
 
-				var lineGraph = svgContainer
-					.append("path")
-					.datum(vect)
-					.attr("class", "line") 
-					.style("stroke", "blue")
-					.style("fill", "none")
-					.attr("d", function(d) { return lineFunction(d );});
+					var lineGraph = svgContainer
+						.append("path")
+						.datum(vect)
+						.attr("class", "line") 
+						.attr("d", function(d) { return lineFunction(d );});
 
-				svgContainer.selectAll(".line")
-					.attr("marker-end", "url(#arrow-head)");
+					 //Add the SVG  text element to the svg container
+					var text = svgContainer.selectAll("text")
+						.data(vect)
+						.enter()
+						.append("text");
 
+					// Add SVG Text element attributes
+					var textLabels = text
+						.attr("x", function(d) { return xScale(d.x); })
+						.attr("y", function(d) { return yScale(d.y); });
+					//	.text ( function (d) { return d.label; } );
+
+					//svgContainer.selectAll(".line")
+					//	.attr("marker-end", "url(#arrow-head)");
+				}
 
 			} // draw plot
 				
@@ -241,52 +328,9 @@
 
 				$('[data-toggle="popover"]').popover();
 
-				var dataSet =[
-					{"opId": "1", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1500", "opEngine":"10", "opTime":"45"} ,
-					{"opId": "1", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1500", "opEngine":"30", "opTime":"45"} ,
-					{"opId": "1", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1500", "opEngine":"50", "opTime":"45"} ,
-					{"opId": "1", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1500", "opEngine":"70", "opTime":"45"} ,
-					{"opId": "1", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1500", "opEngine":"90", "opTime":"45"} ,
-					{"opId": "2", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1600", "opEngine":"10", "opTime":"45"} ,
-					{"opId": "2", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1600", "opEngine":"30", "opTime":"45"} ,
-					{"opId": "2", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1600", "opEngine":"50", "opTime":"45"} ,
-					{"opId": "2", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1600", "opEngine":"70", "opTime":"45"} ,
-					{"opId": "2", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1600", "opEngine":"90", "opTime":"45"} ,
-					{"opId": "3", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1700", "opEngine":"10", "opTime":"45"} ,
-					{"opId": "3", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1700", "opEngine":"30", "opTime":"45"} ,
-					{"opId": "3", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1700", "opEngine":"50", "opTime":"45"} ,
-					{"opId": "3", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1700", "opEngine":"70", "opTime":"45"} ,
-					{"opId": "3", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1700", "opEngine":"90", "opTime":"45"} ,
-					{"opId": "4", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1800", "opEngine":"10", "opTime":"45"} ,
-					{"opId": "4", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1800", "opEngine":"30", "opTime":"45"} ,
-					{"opId": "4", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1800", "opEngine":"50", "opTime":"45"} ,
-					{"opId": "4", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1800", "opEngine":"70", "opTime":"45"} ,
-					{"opId": "4", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1800", "opEngine":"90", "opTime":"45"} ,
-					{"opId": "5", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1900", "opEngine":"10", "opTime":"45"} ,
-					{"opId": "5", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1900", "opEngine":"30", "opTime":"45"} ,
-					{"opId": "5", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1900", "opEngine":"50", "opTime":"45"} ,
-					{"opId": "5", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1900", "opEngine":"70", "opTime":"45"} ,
-					{"opId": "5", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"1900", "opEngine":"90", "opTime":"45"} ,
-					{"opId": "6", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2000", "opEngine":"10", "opTime":"45"} ,
-					{"opId": "6", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2000", "opEngine":"30", "opTime":"45"} ,
-					{"opId": "6", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2000", "opEngine":"50", "opTime":"45"} ,
-					{"opId": "6", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2000", "opEngine":"70", "opTime":"45"} ,
-					{"opId": "6", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2000", "opEngine":"90", "opTime":"45"} ,
-					{"opId": "7", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2100", "opEngine":"10", "opTime":"45"} ,
-					{"opId": "7", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2100", "opEngine":"30", "opTime":"45"} ,
-					{"opId": "7", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2100", "opEngine":"50", "opTime":"45"} ,
-					{"opId": "7", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2100", "opEngine":"70", "opTime":"45"} ,
-					{"opId": "7", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2100", "opEngine":"90", "opTime":"45"} ,
-					{"opId": "8", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2200", "opEngine":"10", "opTime":"45"} ,
-					{"opId": "8", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2200", "opEngine":"30", "opTime":"45"} ,
-					{"opId": "8", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2200", "opEngine":"50", "opTime":"45"} ,
-					{"opId": "8", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2200", "opEngine":"70", "opTime":"45"} ,
-					{"opId": "8", "opActive": "1", "opMode": "N/C_BRT_5H", "opDyno":"2200", "opEngine":"90", "opTime":"45"} 
-				];
-
 				//common Datatables properties
 				$.extend( true, $.fn.dataTable.defaults, {
-					"searching": false,
+					"searching": true,
 					"paging": false,
 					"info": false,
 					"scrollY": "200px",
@@ -314,7 +358,7 @@
 						{title:"Desc", targets:6, className : "chnDesc", data: "chnDesc" , visible: false} 
 
 						],
-						dom: '<"#chnToolbar">Bfrtip',
+						dom: '<"#chnToolbar">Brtip',
 					buttons: [ // ** do not change the name attribute **
 						{ text:"New", name: "chnNew-btn"},
 						{ text:"Remove", name: "chnRemove-btn" },
@@ -325,13 +369,17 @@
 				});
 					
 				var t1 = $('#opDataTable').DataTable({
-					data: dataSet,
+					//data: dataSet,
+					ajax : {
+						url :"/opImport.json",
+						dataSrc: ''
+					},
 					rowId: "opId",
 					"columnDefs":[
 						{ orderable: false, targets: '_all'},
 						{ title: ""     ,  targets:0 , data: null,       className: 'select-checkbox',  width: "10px", defaultContent: "" },
 						{ title: "State",  targets:7 , data: null,       className: 'active-control', defaultContent: "<i></i>" },
-						{ title: "#",      targets:1 , data: "opId",     className: 'reorder export', width: "10px", defaultContent: "" },
+						{ title: "#",      targets:1 , data: "opId",     className: 'reorder export', width: "10px", defaultContent: "" }, // start to 1
 						{ title: "Activ",  targets:6 , data: "opActive", className: 'exportCSV', visible: false ,defaultContent: "1" },
 						{ title: "Mode",   targets:2 , data: "opMode" ,  className: 'exportCSV'},
 						{ title: "Dyno",   targets:3 , data: "opDyno" ,  className: 'exportCSV',},
@@ -339,7 +387,7 @@
 						{ title: "Time",   targets:5 , data: "opTime" ,  className: 'exportCSV'},
 						
 					],
-					dom: '<"#opToolbar">Bfrtip',
+					dom: '<"#opToolbar">Brtip',
 					buttons: [
 						{ text: 'New' },
 						{ text: 'Remove' },
@@ -361,7 +409,8 @@
 				
 				// at the begining there is no row so there is no possibility to 
 				// remove, edit or merge a row
-				draw_plot( t1.column(3).data(), t1.column(4).data(), t1.column(1).data());
+				//draw_plot( t1.column(3).data(), t1.column(4).data(), t1.column(1).data());
+				draw_plot( t1);
 				if (t1.rows().count() === 0)
 					t1.buttons([1,2,4]).disable();
 
@@ -401,11 +450,15 @@
 
 				t1.on( 'draw', function (e,dt,type,index) {
 					d3.selectAll("#svgContainer > *").remove();
-					draw_plot( t1.column(3).data(), t1.column(4).data(), t1.column(1).data());
+					//draw_plot( t1.column(3).data(), t1.column(4).data(), t1.column(1).data());
+					draw_plot( t1);
+					//try_select();
 				} );
 
 				t1.on( 'select', function (e,dt,type,index) {
 					toggleChnDataTable_NewBtn() ;
+				//	d3.select('#' + index)
+				//		.classed('selected', !oneCircle.classed('selected'));
 				} );
 
 				t1.on( 'deselect', function (e,dt,type,index) {
@@ -571,6 +624,7 @@
 
 					$('#formModal').modal('hide'); 
 				});
+
 
 				
 			}); // function.ready({})

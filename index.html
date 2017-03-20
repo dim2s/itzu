@@ -26,10 +26,9 @@
 				<a class="navbar-brand" href="#">KitKat</a>
 			</div>
 			<ul class="nav navbar-nav">
-				<li><a href="#">Home</a></li>
 				<li><a href="#">Getting started</a></li>
-				<li><a href="#">Graph</a></li>
-				<li><a href="#">Configuration</a></li>
+				<li><a href="#panel-graph">Graph</a></li>
+				<li><a href="#panel-conf">Configuration</a></li>
 				<li><a href="#">Contacts</a></li>
 			</ul>
 			<ul class="nav navbar-nav navbar-right">
@@ -59,22 +58,35 @@
 
 		<div class="container-fluid"> 
 			</br></br></br> <!-- ToDo: replace this kick hack... -->
-			<div class="row">
-				<div class="col-sm-1"></div>
-				<div class="col-sm-11" id="svgContainer"> 
+			<div class="panel panel-default" id="panel-graph" >
+				<div class="panel-heading" >
+						<h4 class="panel-title">Operating points graphical representation</h4>
+				</div>
+				<div class="panel-body" >
+					<div class="row">
+						<div class="col-sm-1"></div>
+						<div class="col-sm-11" id="svgContainer"> </div>
+					</div>
 				</div>
 			</div>
-			<div class="row"> 
-				<div class="col-sm-1"></div>
-				<div class="col-sm-6">
-					<table id="opDataTable" class="display" cellspacing="0" width="100%"> </table>
+
+			<div class="panel panel-default" id="panel-conf">
+				<div class="panel-heading" >
+					<h4 class="pannel-title">	Operating points configuration </h4>
 				</div>
-				<div class="col-sm-5">
-					<table id="chnDataTable" class="display" cellspacing="0" width="100%"> </table>
+				<div class="panel-body" >
+					<div class="row"> 
+						<div class="col-sm-1"></div>
+						<div class="col-sm-5">
+							<table id="opDataTable" class="display" cellspacing="0" width="100%"> </table>
+						</div>
+						<div class="col-sm-5">
+							<table id="chnDataTable" class="display" cellspacing="0" width="100%"> </table>
+						</div>
+						<div class="col-sm-1"></div>
+					</div>
 				</div>
-				<!--div class="col-sm-1"></div-->
-			</div>
-		</div>
+			</div> <!--div class="col-sm-1"></div-->
 
 		<!-- datatables-1.10.13 Library -->
 		<script type="text/javascript" src="libs/jquery.dataTables.min.js"></script>
@@ -95,6 +107,10 @@
 		<!--script src="libs/chartist.min.js"></script-->
 
 		<script type="text/javascript">
+			var winWidth = $(window).width();
+			$(window).resize( function (){
+					winWidth = $(window).width();
+			});
 			/* unordered ToDo list:
 			   - select all rows when clicking on the checkbox header
 			   - child row with additional info: unit, description, etc..
@@ -121,15 +137,15 @@
 			  - mettre une valeur par defaut pour le label, au cas ou l'utilisateur ne le fait pas
 			  */
 				var vect = [];
-				var radius = 6;
+				var radius = 4.5;
 				// draw N/Torque and torque/N axis
-				var y = { min:0 , max:120}; //Torque default range
-				var x = { min:800 , max:3000}; //Speed default range
+				var y = { min:0 , max:300}; //Torque default range
+				var x = { min:600 , max:3500}; //Speed default range
 
 				// set the dimensions and margins of the graph
 				//ToDo: set the by percent
 				var margin = {top: 20, right: 150, bottom: 30, left: 50};
-			    var width = 1200 - margin.left - margin.right;
+			    var width = winWidth - margin.left - margin.right;
 				var	height = 500 - margin.top - margin.bottom;
 
 				var dt_rows = dt.rows(':not(.ban)');
@@ -333,7 +349,7 @@
 					"searching": true,
 					"paging": false,
 					"info": false,
-					"scrollY": "200px",
+					"scrollY": "600px",
 					"scrollCollapse": true,
 					"select" : { 
 						style: "multi", 
@@ -364,6 +380,7 @@
 						{ text:"Remove", name: "chnRemove-btn" },
 						{ text:"Edit", name: "chnEdit-btn", state:false},
 						{ text:"Merge", name: "chnMerge-btn"},
+						{ text:"Merge All", name: "chnMergeAll-btn"},
 						{ text: "Import A2L", name: "chnImport-btn"} 
 					]	
 				});

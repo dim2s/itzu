@@ -104,13 +104,10 @@
 		<script type="text/javascript" src="client/chnModal.js"></script>
 		<script type="text/javascript" src="client/opModal.js"></script>
 		<script type="text/javascript" src="client/chnlabellist.js"></script>
+		<script type="text/javascript" src="client/chart.js"></script>
 		<!--script src="libs/chartist.min.js"></script-->
 
 		<script type="text/javascript">
-			var winWidth = $(window).width();
-			$(window).resize( function (){
-					winWidth = $(window).width();
-			});
 			/* unordered ToDo list:
 			   - select all rows when clicking on the checkbox header
 			   - child row with additional info: unit, description, etc..
@@ -130,216 +127,6 @@
 			   - disable remove and edit button when they are not necessary (0 or multi rows selected)
 			   - implement local storage feature
 			   */
-			function draw_plot(dt ) {
-			//function draw_plot(x_tab, y_tab, idx_tab ) {
-			/*Todo: 
-			  - check that they all have the same sise...
-			  - mettre une valeur par defaut pour le label, au cas ou l'utilisateur ne le fait pas
-			  */
-				var vect = [];
-				var radius = 4.5;
-				// draw N/Torque and torque/N axis
-				var y = { min:0 , max:300}; //Torque default range
-				var x = { min:600 , max:3500}; //Speed default range
-
-				// set the dimensions and margins of the graph
-				//ToDo: set the by percent
-				var margin = {top: 20, right: 150, bottom: 30, left: 50};
-			    var width = winWidth - margin.left - margin.right;
-				var	height = 500 - margin.top - margin.bottom;
-
-				var dt_rows = dt.rows(':not(.ban)');
-
-				function handleMouseClick(d, i){
-					var circle_selected = d3.select(this).classed("selected");
-
-					//toggle ".selected" circle class
-					d3.select(this).classed("selected", !circle_selected);
-
-					//toggle row select state
-					if (circle_selected) {
-						$('#opDataTable').DataTable().row(d.idx).deselect();
-					} else {
-						$('#opDataTable').DataTable().row(d.idx).select();
-					}
-				}
-
-				// Create event handlers for mouse out circle
-				function handleMouseOut(d, i){
-					d3.select(this)
-						.attr("fill", "black" )
-						.attr("r", radius );
-					
-				}
-
-				// Create event handlers for mouse over circle
-				function handleMouseOver(d, i){
-					d3.select(this)
-						.attr("fill", "orange")
-						.attr("r", radius * 2);
-					
-				}
-
-				
-				for (var i=0; i < dt_rows.data().length; i++ ){
-					var node = {};
-					node.x = parseInt(dt_rows.data()[i].opDyno);
-					node.y = parseInt(dt_rows.data()[i].opEngine);
-					node.idx = i; //parseInt(dt_rows.data()[i].opId);
-					vect.push(node);
-				}
-
-
-				// create svg container
-				var svgContainer=d3.select("#svgContainer").append("svg")
-					.attr("width", width + margin.left + margin.right)
-					.attr("height", height + margin.top + margin.bottom);
-
-				svgContainer
-					.append("g")
-					.style("border", "1px solid black");
-
-
-				var min_y = d3.min(vect, function(d) { return d.y; });
-				var max_y = d3.max(vect, function(d) { return d.y; });
-				var min_x = d3.min(vect, function(d) { return d.x; });
-				var max_x = d3.max(vect, function(d) { return d.x; });
-				
-				// reset the domain boudaries if necessary. deals with NaN cases!!!! 
-				if ( min_y < y.min ) 
-					y.min = min_y;
-
-				if ( max_y > y.max )
-					y.max = max_y;
-
-				if ( min_x < x.min )
-					x.min = min_x;
-
-				if ( max_y > x.max )
-					x.max = max_x;
-
-				var xScale = d3.scaleLinear()
-					.range([0, width])
-					.domain([ x.min , x.max ]);
-
-				var yScale = d3.scaleLinear()
-					.range([height,0])
-					.domain([ y.min, y.max]);
-
-				// set label for the Y Axis
-				// Todo: the text value must be set dynamicly depending of the data
-				svgContainer.append("text")
-					.attr("y", 0 - margin.top)
-					.attr("x", 0 - margin.left/2)
-					.attr("dy", "1em")
-					.text("Torque");
-				
-				// set label for the X Axis
-				svgContainer.append("text")
-					.attr("y", height + margin.bottom/4 )
-					.attr("x", width )
-					.attr("dx", "1em")
-					.text("N");
-
-				 // Add the X Axis
-				 svgContainer.append("g")
-					 .attr("class", "axis")
-					 .attr("transform", "translate("+margin.left +"," + height +  ")")
-					 .call(d3.axisBottom(xScale));
-
-				 // Add the Y Axis
-				 svgContainer.append("g")
-					 .attr("class", "axis")
-					.attr("transform", "translate("+  margin.left + "," + margin.bottom + ")")
-					 .call(d3.axisLeft(yScale));
-
-				// arrow-head
-				svgContainer.append("svg:defs")
-					.append("svg:marker")
-					.attr("id", "arrow-head")
-					.attr("refX", 2)
-					.attr("refY", 6)
-					.attr("markerWidth", 13)
-					.attr("markerHeight", 13)
-					.attr("orient", "auto")
-					.append("path")
-					.attr("d", "M2,2 L2,11 L10,6 L2,2")
-					.style("fill", "black");
-/*
-				$('#svgContainer').on( 'dblclick',  function () {
-						alert("jquery double click");
-				});
-*/
-
-				// On Click, we want to add data to the array and chart
-				svgContainer.on("dblclick", function() {
-		/*			var coords = d3.mouse(this);
-
-				    // Normally we go from data to pixels, but here we're doing pixels to data
-				    var newData= {
-				         x: Math.round( xScale.invert(coords[0])),  // Takes the pixel number to convert to number
-				         y: Math.round( yScale.invert(coords[1]))
-				     };
-
-				    dataset.push(newData);   // Push data to our array
-
-					svg.selectAll("circle")  // For new circle, go through the update process
-					  .data(dataset)
-					  .enter()
-					  .append("circle")
-					  .attr(circleAttrs)  // Get attributes from circleAttrs var
-		            .on("mouseover", handleMouseOver)
-					.on("mouseout", handleMouseOut);*/
-
-					alert("svg double click ajoute un pdf!!!!!");
-        });
-
-				if ( vect.length > 0 ) {
-					//draw circles 
-					svgContainer
-						.selectAll("circle").data(vect).enter()
-						.append("circle")
-						.attr("class", "active") 
-						.attr("cx",  function (d){ return xScale(d.x); }) 
-						.attr("cy",  function (d){ return yScale(d.y); }) 
-						.attr("id",  function (d){ return d.idx; }) 
-						.attr("r", radius )
-						//.on("dblclick", handleMouseClick)
-						.on("click", handleMouseClick)
-						/*.on("mouseout", handleMouseOut)
-						.on("mouseover", handleMouseOver)*/;
-
-
-					//draw lines
-					var lineFunction = d3.line()
-						.x( function(d) { return xScale(d.x); } )
-						.y( function(d) { return yScale(d.y); } )
-						.curve( d3.curveLinear );
-
-					var lineGraph = svgContainer
-						.append("path")
-						.datum(vect)
-						.attr("class", "line") 
-						.attr("d", function(d) { return lineFunction(d );});
-
-					 //Add the SVG  text element to the svg container
-					var text = svgContainer.selectAll("text")
-						.data(vect)
-						.enter()
-						.append("text");
-
-					// Add SVG Text element attributes
-					var textLabels = text
-						.attr("x", function(d) { return xScale(d.x); })
-						.attr("y", function(d) { return yScale(d.y); });
-					//	.text ( function (d) { return d.label; } );
-
-					//svgContainer.selectAll(".line")
-					//	.attr("marker-end", "url(#arrow-head)");
-				}
-
-			} // draw plot
-				
 			$(document).ready(function() {
 
 				$('[data-toggle="popover"]').popover();
@@ -427,7 +214,20 @@
 				// at the begining there is no row so there is no possibility to 
 				// remove, edit or merge a row
 				//draw_plot( t1.column(3).data(), t1.column(4).data(), t1.column(1).data());
-				draw_plot( t1);
+				//draw_plot( t1);
+				
+
+
+				function draw_plot(t1) {
+					//Chart.render(); 
+					Chart.init('#opDataTable');
+				}
+
+				$(window).on('resize', function() { 
+						//Chart.render();
+					Chart.init('#opDataTable');
+			 	} );
+
 				if (t1.rows().count() === 0)
 					t1.buttons([1,2,4]).disable();
 
@@ -467,19 +267,19 @@
 
 				t1.on( 'draw', function (e,dt,type,index) {
 					d3.selectAll("#svgContainer > *").remove();
-					//draw_plot( t1.column(3).data(), t1.column(4).data(), t1.column(1).data());
 					draw_plot( t1);
 					//try_select();
 				} );
 
 				t1.on( 'select', function (e,dt,type,index) {
 					toggleChnDataTable_NewBtn() ;
-				//	d3.select('#' + index)
-				//		.classed('selected', !oneCircle.classed('selected'));
+					$('#' + index).toggleClass('selected'); 
+					//	.classed('selected', !oneCircle.classed('selected'));
 				} );
 
 				t1.on( 'deselect', function (e,dt,type,index) {
 					toggleChnDataTable_NewBtn() ;
+					$('#' + index).toggleClass('selected'); 
 				} );
 
 				t1.on( 'select', function (e,dt,type,index) {
@@ -523,6 +323,7 @@
 
 				t1.button(1).action( function( event, dt, btn, config ) {
 					removeRows(event, dt, btn, config);
+					toggleDataTable_EditRemoveBtn(dt) ;
 				});
 
 

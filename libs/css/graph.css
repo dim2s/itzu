@@ -11,6 +11,10 @@ circle {
 	stroke-width: 3px;
 }
 
+.disabled {
+	opacity : 0.2;
+}
+
 .selected {
 	fill: red;
 }
@@ -19,4 +23,11 @@ circle {
 	height: 18px; /* smaller height means more visible rows for users*/
 	padding: 3px 3px;
 	font-size: 12px;
+}
+
+.background {
+	fill: e7e7e7;
+}
+
+#svgContainer {
 }

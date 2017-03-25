@@ -3,12 +3,13 @@
 // require d3.js
 
 var Chart = (function () {
-	const aspectRatio = 0.4; // graph height = aspectRatio * width 
+	const aspectRatioHeight = 0.4; // graph height = aspectRatio * width 
+	const aspectRatioCircle = 0.008; // graph height = aspectRatio * width 
 	const margin = {top:20, bottom:20, left:50, right:50}; // margin are necessary to draw the axis
-	const radius = 7;
 	const y = { min:0 , max:300}; //Torque default range
 	const x = { min:600 , max:3500}; //Speed default range
 	var graphSize = {};
+	var radius ;
 	var xScale, yScale;
 	var xAxis, yAxis;
 	var lineFunction; // the path generator for the line function
@@ -86,7 +87,8 @@ var Chart = (function () {
 		var w = document.getElementById('panel-graph').clientWidth;
 
 		graphSize.width = w - margin.left - margin.right;
-		graphSize.height = aspectRatio*w - margin.top - margin.bottom;
+		graphSize.height = aspectRatioHeight*w - margin.top - margin.bottom;
+		radius = w*aspectRatioCircle;
 	} //updateDimensions
 
 

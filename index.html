@@ -23,7 +23,7 @@
 	<body>
 		<nav class="navbar navbar-inverse navbar-fixed-top">
 			<div class="navbar-header">
-				<a class="navbar-brand" href="#">KitKat</a>
+				<a class="navbar-brand" href="#">Itzu</a>
 			</div>
 			<ul class="nav navbar-nav">
 				<li><a href="#">Getting started</a></li>
@@ -106,6 +106,7 @@
 		<script type="text/javascript" src="client/wizardModal.js"></script>
 		<script type="text/javascript" src="client/chnlabellist.js"></script>
 		<script type="text/javascript" src="client/chart.js"></script>
+		<script type="text/javascript" src="client/wizard.js"></script>
 		<!--script src="libs/chartist.min.js"></script-->
 
 		<script type="text/javascript">
@@ -174,11 +175,10 @@
 				});
 					
 				var t1 = $('#opDataTable').DataTable({
-					//data: dataSet,
-					ajax : {
-						url :"/opImport.json",
-						dataSrc: ''
-					},
+					//ajax : {
+					//	url :"/opImport.json",
+					//	dataSrc: ''
+					//},
 					rowId: "opId",
 					"columnDefs":[
 						{ orderable: false, targets: '_all'},
@@ -354,6 +354,8 @@
 
 				function wizardFormCreate(b,str,dt_id) {
 					var m = $('#formModal');
+
+					m.find('.contextualItems').remove();
 					m.find('.modal-title').text(b.text());
 					m.find('.modal-body').append(str);
 					m.find('.modal-footer').append(
@@ -428,7 +430,24 @@
 
 				//wizard handler
 				$(document).on('submit', '#form-wizard', function(e) {
-					alert('wizard form handler');
+						var rows = [];
+						var data = [];
+						var m=$( '#form-wizard');
+
+						var f = m.serializeArray().reduce(function(obj,item) {
+							obj[item.name] = item.value;
+							return obj;
+							} , {} );
+
+						e.preventDefault();
+						data = wizard.data(f);
+						
+						rows = data.compute("updown");
+						
+						t1.clear().draw();
+						t1.rows.add(rows).draw();
+
+						$('#formModal').modal('hide');
 				});
 
 				//new row, save modal handler

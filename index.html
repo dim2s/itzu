@@ -185,7 +185,7 @@
 						{ title: ""     ,  targets:0 , data: null,       className: 'select-checkbox',  width: "10px", defaultContent: "" },
 						{ title: "State",  targets:7 , data: null,       className: 'active-control', defaultContent: "<i></i>" },
 						{ title: "#",      targets:1 , data: "opId",     className: 'reorder export', width: "10px", defaultContent: "" }, // start to 1
-						{ title: "Activ",  targets:6 , data: "opActive", className: 'exportCSV', visible: false ,defaultContent: "1" },
+						{ title: "Activ",  targets:6 , data: "opActive", className: 'exportCSV', visible: false , defaultContent: "1" },
 						{ title: "Mode",   targets:2 , data: "opMode" ,  className: 'exportCSV'},
 						{ title: "Dyno",   targets:3 , data: "opDyno" ,  className: 'exportCSV',},
 						{ title: "Engine", targets:4 , data: "opEngine", className: 'exportCSV'},
@@ -432,9 +432,9 @@
 				$(document).on('submit', '#form-wizard', function(e) {
 						var rows = [];
 						var data = [];
-						var m=$( '#form-wizard');
+						var m=$('#form-wizard');
 
-						var f = m.serializeArray().reduce(function(obj,item) {
+						var f = $('#form-wizard').serializeArray().reduce(function(obj,item) {
 							obj[item.name] = item.value;
 							return obj;
 							} , {} );

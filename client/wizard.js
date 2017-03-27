@@ -22,8 +22,8 @@ var wizard = (function (){
 			for( var dyno_setvalue = dyno.min ; dyno_setvalue <= dyno.max ; dyno_setvalue += dyno.step )
 				for( var engine_setvalue = engine.min ; engine_setvalue <= engine.max ; engine_setvalue += engine.step ) {
 					var obj ={};
-					obj[desc.engine] = dyno_setvalue;
-					obj[desc.dyno] = engine_setvalue;
+					obj[desc.engine] = engine_setvalue;
+					obj[desc.dyno] = dyno_setvalue;
 					obj[desc.ctrltime] = control.time;
 					obj[desc.ctrlmode] = control.mode;
 					obj[desc.id] = ++count;

@@ -67,8 +67,6 @@ var Chart = (function () {
 
 		var dt_rows = $(dtName).DataTable().rows(); 
 		
-		data = [];
-
 		for (var i=0; i < dt_rows.data().length; i++ ){
 			var node = {};
 			node.x = parseInt(dt_rows.data()[i].opDyno);
@@ -119,7 +117,7 @@ var Chart = (function () {
 			if ( min_x < x.min )
 				x.min = min_x;
 
-			if ( max_y > x.max )
+			if ( max_x > x.max )
 				x.max = max_x;
 
 			// Initialise the scales
@@ -173,7 +171,7 @@ var Chart = (function () {
 				.attr('width', graphSize.width + margin.left + margin.right ) 	
 				.attr('height', graphSize.height + margin.bottom + margin.top ); 	
 
-			chartWrapper.selectAll('circle').remove();
+			chartWrapper.select('circles').remove();
 
 			chartWrapper.attr(
 					"transform",

@@ -35,8 +35,8 @@ var Chart = function () {
 	};
 					 
 	var _type;			//type of chart: N-SPEED, N-TORQUE, N-ACCEL, N-X
-	var _margin =    { top:20, bottom:60, left:60, right: 20};
-	var _outerSize = { height: 600, width: 1200}; 
+	var _margin =    { top:20, bottom:60, left:60, right: 40};
+	var _outerSize = { height: 550, width: 1200}; 
 	var _innerSize = { 
 		height: _outerSize.height - _margin.top - _margin.bottom,
 		width:  _outerSize.width  - _margin.right - _margin.left };
@@ -45,7 +45,7 @@ var Chart = function () {
 	var _yScale = d3.scaleLinear();
 	var _xAxis = d3.axisBottom(_xScale);
 	var _yAxis = d3.axisLeft(_yScale);
-	var _radius = 6;
+	var _radius = 5;
 
 	//methods and properties publicly available
 	//

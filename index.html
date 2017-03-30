@@ -31,10 +31,10 @@
 				<li><a href="#panel-conf">Configuration</a></li>
 				<li><a href="#">Contacts</a></li>
 			</ul>
-			<ul class="nav navbar-nav navbar-right">
+			<!--ul class="nav navbar-nav navbar-right">
 				<li><a href="#"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
 				<li><a href="#"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
-			</ul>
+			</ul-->
 		</nav>
 
 		<br>
@@ -111,28 +111,26 @@
 
 		<script type="text/javascript">
 			/* unordered ToDo list:
-			   - select all rows when clicking on the checkbox header
 			   - child row with additional info: unit, description, etc..
-			   - rendering value column with unit ( unit is a hidden column)
 			   - hidden column unit, description, type, targetsRow
-			   - ajax implementation for <datalist input>
 			   - a2l,puma NN list convertion to json
 			   - csv import/export
-			   - graphical representation of operating point (D3.js, chartist?)
 			   - form validation (required value, range, uniqness)
 			   - onreload page confirmation before loosing data
 			   - group row by type ( channel tab uniquement )
-			   - remplacer yes/no de la colonne ACTIV par une image clickable toggle
 			   - limit the number of row datalist can show ( or use JQuery flexdatalist plugin )
 			   - use the name of button instead of their indexes ( it can cause some bug if the order is changed )
 			   - autocomplete unit, description and type base on label selection
-			   - disable remove and edit button when they are not necessary (0 or multi rows selected)
 			   - implement local storage feature
+			   - when filling form, goes to next input on enter key pressed event
+			   - mark select all check box when check
+
 			   */
 			$(document).ready(function() {
 
 				$('[data-toggle="popover"]').popover();
-				chart = new Chart;
+				var chart = new Chart;
+				var targetMode="N/CBRT_5_H";
 				chart.init();
 
 				//common Datatables properties
@@ -184,7 +182,7 @@
 					rowId: "opId",
 					"columnDefs":[
 						{ orderable: false, targets: '_all'},
-						{ title: ""     ,  targets:0 , data: null,       className: 'select-checkbox',  width: "10px", defaultContent: "" },
+						{ title: "<span id='op-select-all'></span>"     ,  targets:0 , data: null,       className: 'select-checkbox',  width: "10px", defaultContent: "" },
 						{ title: "State",  targets:7 , data: null,       className: 'active-control', defaultContent: "<i></i>" },
 						{ title: "#",      targets:1 , data: "opId",     className: 'reorder export', width: "10px", defaultContent: "" }, // start to 1
 						{ title: "Activ",  targets:6 , data: "opActive", className: 'exportCSV', visible: false , defaultContent: "1" },
@@ -252,10 +250,17 @@
 					}
 				}
 
+				function selectRowToDraw(mode) {
+						return $('#opDataTable')
+										.DataTable()
+										.rows( function(idx,d,node) { return (d.opMode == mode) ? true : false ;} )
+										.data()
+										.toArray();
+
+				}
+				
 				t1.on( 'draw', function (e,dt,type,index) {
-				//	d3.selectAll("#svg-container > *").remove();
-					//try_select();
-					var data = $('#opDataTable').DataTable().rows().data().toArray();
+					var data = selectRowToDraw(targetMode); 
 					chart.draw(data);
 				} );
 
@@ -268,19 +273,21 @@
 					toggleChnDataTable_NewBtn() ;
 					toggleDataTable_EditRemoveBtn(dt) ;
 
-					dt.cell(index,8).data(1).draw();
+					//toggle the state of the select column value
+					index.forEach( function(i) { 
+						dt.cell(i,8).data(1);
+						});
 
 					var selectedRows = dt.rows('.selected');
 					if (selectedRows.count() > 0 ) {
-						var data = $('#opDataTable').DataTable().rows().data().toArray();
-						chart.init(
-							data,
-							selectedRows.data()[0].opMode
-						);	
+						targetMode = selectedRows.data()[0].opMode;
+						var data = selectRowToDraw(targetMode); 
+   
+						chart.init( data, targetMode );	
 						chart.draw(data);
 					}
 
-				
+					dt.rows().draw();	
 					//we draw the chart based on the regulation mode of
 					// the first selected Item
 					//	.classed('selected', !oneCircle.classed('selected'));
@@ -289,7 +296,10 @@
 				t1.on( 'deselect', function (e,dt,type,index) {
 					toggleChnDataTable_NewBtn() ;
 					toggleDataTable_EditRemoveBtn(dt) ;
-					dt.cell(index,8).data(0).draw();
+					index.forEach ( function(i) {
+						dt.cell(i,8).data(0);
+						});
+					dt.rows().draw();
 				} );
 
 
@@ -301,9 +311,21 @@
 					toggleDataTable_EditRemoveBtn(dt) ;
 				} );
 
+				//Todo: bugfix when using global select the chart is not refresh
+				$('#opDataTable_wrapper').on( 'click' ,'th.select-checkbox',  function () {
+						var dt=$('#opDataTable').DataTable();
+
+						// toggle select status for all rows	
+						if (dt.rows('.selected').count() > 0) {
+							dt.rows().deselect().draw();
+						} else { 
+							dt.rows().select().draw();
+						}
+
+				});
+				
 				// toggle Activ cell value on click
 				$('#opDataTable tbody').on( 'click', 'td.active-control' , function () {
-
 						var tr = $(this).closest('tr');
 						var tr_idx = tr.index();
 						var d = t1.row(tr_idx).data();
@@ -441,9 +463,9 @@
 						e.preventDefault();
 						data = wizard.data(f);
 						
-						rows = data.compute("updown");
+						rows = data.compute(f.direction);
 						
-						t1.clear().draw();
+						t1.clear();
 						t1.rows.add(rows).draw();
 
 						$('#formModal').modal('hide');

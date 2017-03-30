@@ -24,11 +24,11 @@ var str_wizardModal = `
 		<h5 class="contextualItems">Direction settings:</h5>
 		<div class="form-group contextualItems">
 			<div class="radio">
-				<label class="active"><input type="radio" name="direction" aria-label="Step" value="updown" checked="" >Up-Down</label>
+				<label class="active"><input type="radio" name="direction" aria-label="Step" value="down-up" checked="" >Down-Up</label>
 			</div>
 
 			<div class="radio">
-				<label ><input type="radio" name="direction" aria-label="Step" value="downup" >Down-Up</label>
+				<label ><input type="radio" name="direction" aria-label="Step" value="up-down" >Up-Down</label>
 			</div>
 		</div>
 		<hr class="contextualItems">

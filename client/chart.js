@@ -64,10 +64,25 @@ var Chart = function () {
 		}	
 
 	function myDraw(opList) {
+		myDrawAxis(opList);
 		myDrawNodes(opList);
 		myDrawArcs(opList);
 	}
 
+	function myDrawAxis(opList) {
+		var svg =d3.select('#svg-container');
+
+		svg
+			.select('.x.axis')
+			.call(_xAxis)
+			.select('text.axis-label')
+			.text(chartType[_type].xLabel);
+		svg
+			.select('.y.axis')
+			.call(_yAxis)
+			.select('text.axis-label')
+			.text(chartType[_type].yLabel);
+	}
 
 	function myDrawArcs(opList){
 		var	lineFunction = d3.line()

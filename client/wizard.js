@@ -17,10 +17,28 @@ var wizard = (function (){
 	control.mode    = 45;
 
 	var myFunctions = {
-		updown : function () {
+		"up-down" : function () {
 			var seq = [];
 			var count = 0;
-			console.log("up-down...");
+			console.log("wizard: up-down...");
+			for( var dyno_setvalue = dyno.max ; dyno_setvalue >= dyno.min ; dyno_setvalue -= dyno.step )
+				for( var engine_setvalue = engine.max ; engine_setvalue >= engine.min ; engine_setvalue -= engine.step ) {
+					var obj ={};
+					obj[desc.engine] = engine_setvalue;
+					obj[desc.dyno] = dyno_setvalue;
+					obj[desc.ctrltime] = control.time;
+					obj[desc.ctrlmode] = control.mode;
+					obj[desc.active] = 1;
+					obj[desc.selected] = 0;
+					obj[desc.id] = count++;
+					seq.push (obj);		
+				}
+			return seq;
+				 },
+		"down-up" : function () {
+			var seq = [];
+			var count = 0;
+			console.log("wizard: down-up...");
 			for( var dyno_setvalue = dyno.min ; dyno_setvalue <= dyno.max ; dyno_setvalue += dyno.step )
 				for( var engine_setvalue = engine.min ; engine_setvalue <= engine.max ; engine_setvalue += engine.step ) {
 					var obj ={};

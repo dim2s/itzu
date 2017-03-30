@@ -62,10 +62,10 @@
 				<div class="panel-heading" >
 						<h4 class="panel-title">Operating points graphical representation</h4>
 				</div>
-				<div class="panel-body" >
+				<div class="panel-body fixed-panel" >
 					<div class="row">
 						<div class="col-sm-1"></div>
-						<div class="col-sm-11" id="svgContainer"> </div>
+						<div class="col-sm-11" id="svg-container"> </div>
 					</div>
 				</div>
 			</div>
@@ -132,6 +132,8 @@
 			$(document).ready(function() {
 
 				$('[data-toggle="popover"]').popover();
+				chart = new Chart;
+				chart.init();
 
 				//common Datatables properties
 				$.extend( true, $.fn.dataTable.defaults, {
@@ -186,6 +188,7 @@
 						{ title: "State",  targets:7 , data: null,       className: 'active-control', defaultContent: "<i></i>" },
 						{ title: "#",      targets:1 , data: "opId",     className: 'reorder export', width: "10px", defaultContent: "" }, // start to 1
 						{ title: "Activ",  targets:6 , data: "opActive", className: 'exportCSV', visible: false , defaultContent: "1" },
+						{ title: "Selected",  targets:8 , data: "opSelected",  visible: false , defaultContent: "0" },
 						{ title: "Mode",   targets:2 , data: "opMode" ,  className: 'exportCSV'},
 						{ title: "Dyno",   targets:3 , data: "opDyno" ,  className: 'exportCSV',},
 						{ title: "Engine", targets:4 , data: "opEngine", className: 'exportCSV'},
@@ -212,23 +215,6 @@
 				});
 
 				
-				// at the begining there is no row so there is no possibility to 
-				// remove, edit or merge a row
-				//draw_plot( t1.column(3).data(), t1.column(4).data(), t1.column(1).data());
-				//draw_plot( t1);
-				
-
-
-				function draw_plot(t1) {
-					//Chart.render(); 
-					Chart.init('#opDataTable');
-				}
-
-				$(window).on('resize', function() { 
-						//Chart.render();
-					Chart.init('#opDataTable');
-			 	} );
-
 				if (t1.rows().count() === 0)
 					t1.buttons([1,2]).disable();
 
@@ -267,29 +253,45 @@
 				}
 
 				t1.on( 'draw', function (e,dt,type,index) {
-					d3.selectAll("#svgContainer > *").remove();
-					draw_plot( t1);
+				//	d3.selectAll("#svg-container > *").remove();
 					//try_select();
+					var data = $('#opDataTable').DataTable().rows().data().toArray();
+					chart.draw(data);
 				} );
+
+				function toggleNodeSelectActive(idx) {
+					var isActive = ( $('circle#' + idx).attr('data-active') == "true");
+					$('circle#' + idx).attr('data-active', !isActive );
+				}
 
 				t1.on( 'select', function (e,dt,type,index) {
 					toggleChnDataTable_NewBtn() ;
-					$('#' + index).toggleClass('selected'); 
+					toggleDataTable_EditRemoveBtn(dt) ;
+
+					dt.cell(index,8).data(1).draw();
+
+					var selectedRows = dt.rows('.selected');
+					if (selectedRows.count() > 0 ) {
+						var data = $('#opDataTable').DataTable().rows().data().toArray();
+						chart.init(
+							data,
+							selectedRows.data()[0].opMode
+						);	
+						chart.draw(data);
+					}
+
+				
+					//we draw the chart based on the regulation mode of
+					// the first selected Item
 					//	.classed('selected', !oneCircle.classed('selected'));
 				} );
 
 				t1.on( 'deselect', function (e,dt,type,index) {
 					toggleChnDataTable_NewBtn() ;
-					$('#' + index).toggleClass('selected'); 
+					toggleDataTable_EditRemoveBtn(dt) ;
+					dt.cell(index,8).data(0).draw();
 				} );
 
-				t1.on( 'select', function (e,dt,type,index) {
-					toggleDataTable_EditRemoveBtn(dt) ;
-				} );
-
-				t1.on( 'deselect', function (e,dt,type,index) {
-					toggleDataTable_EditRemoveBtn(dt) ;
-				} );
 
 				t2.on( 'select', function (e,dt,type,index) {
 					toggleDataTable_EditRemoveBtn(dt) ;
@@ -396,9 +398,6 @@
 					m.modal('show');
 				});
 
-				t1.button(5).action( function(event, dt, button, config) {
-					alert("csv import: work in progress")
-				});
 
 				// define the action for the 'new row' button of t2 table
 				/*TODO:
@@ -472,6 +471,12 @@
 					$('#formModal *').filter('.dataTableAutoImport').each( function(i) {
 						inputObj[$(this).attr('id')]= $(this).val() ;
 					});
+					
+					// unfortunately defaultContent is not set by datatable in this case so
+					// we should set it manualy 
+				 // todo: retrieve the value of the default content automaticaly
+					inputObj.opActive = ( inputObj.opActive === undefined ) ? 1 : inputObj.opActive ;
+					inputObj.opSelected = ( inputObj.opSelected === undefined ) ? 0 : inputObj.opSelected ;
 
 					//some times we will add a new row, in other case we will edit the existing row	
 					if( recipient === allowedBtn[1] ) {

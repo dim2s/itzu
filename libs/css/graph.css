@@ -11,12 +11,12 @@ circle {
 	stroke-width: 3px;
 }
 
-.disabled {
-	opacity : 0.4;
+circle[data-selected=true] {
+	fill: red;
 }
 
-.selected {
-	fill: red;
+circle[data-active=false] {
+	opacity: 0.4;
 }
 
 .dataTable tbody > tr > td {
@@ -29,5 +29,29 @@ circle {
 	fill: e7e7e7;
 }
 
-#svgContainer {
+/*
+.svg-container-responsive {
+	display: inline-block;
+	position: relative;
+	width: 100%;
+	padding-bottom: 100%; 
+	vertical-align: middle;
+	overflow: hidden;
+}
+
+
+.svg-content-responsive {
+	display: inline-block;
+	position: absolute;
+	top: 10px;
+	left: 0;
+}
+*/
+
+.axis-label {
+	fill:#000;
+}
+
+.fixed-panel {
+	max-height: 700;
 }

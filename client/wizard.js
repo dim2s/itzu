@@ -8,6 +8,8 @@ var wizard = (function (){
 		ctrltime : "opTime",
 		engine:    "opEngine",
 		dyno :    "opDyno",
+		active :    "opActive",
+		selected :    "opSelected",
 		id :       "opId"
 	};
 
@@ -26,12 +28,21 @@ var wizard = (function (){
 					obj[desc.dyno] = dyno_setvalue;
 					obj[desc.ctrltime] = control.time;
 					obj[desc.ctrlmode] = control.mode;
-					obj[desc.id] = ++count;
+					obj[desc.active] = 1;
+					obj[desc.selected] = 0;
+					obj[desc.id] = count++;
 					seq.push (obj);		
 				}
 			return seq;
 		}
 	};
+
+	function _step(max,min,count) {
+		var c = Math.max( 1, count -1);
+		var step = (max === min )? 1:(max-min)/c;
+		if (count === 1) step ++;
+		return step
+	}
 
 	return {
 		data:	function(obj, descriptor=desc) {
@@ -44,14 +55,14 @@ var wizard = (function (){
 					if (obj["type-engine"] === "step") {
 						engine.step = parseInt(obj["type-engine-value"]);
 					} else {
-						engine.step = (engine.max-engine.min)/parseInt(obj["type-engine-value"]);
+						engine.step = _step( engine.max, engine.min, parseInt(obj["type-engine-value"]));
 					}
 					dyno.min = parseInt(obj["min-dyno"]);
 					dyno.max = parseInt(obj["max-dyno"]);
 					if (obj["type-dyno"] === "step") {
 						dyno.step = parseInt(obj["type-dyno-value"]);
 					} else {
-						dyno.step = (dyno.max-dyno.min)/parseInt(obj["type-dyno-value"]);
+						dyno.step = _step( dyno.max, dyno.min, parseInt(obj["type-dyno-value"]));
 					}
 					return this;
 				},

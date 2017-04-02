@@ -32,47 +32,18 @@ var str_wizardModal = `
 			</div>
 		</div>
 		<hr class="contextualItems">
-		<h5 class="contextualItems">Engine settings:</h5>
-		<div class="form-group contextualItems">
-			<div class="input-group">
-				<span class="input-group-addon" id="basic-addon1">Max</span>
-				<input type="number" class="form-control"  aria-describedby="basic-addon1" name="max-engine" required>
-			</div>
-		</div>
-		<div class="form-group contextualItems">
-			<div class="input-group">
-				<span class="input-group-addon" id="basic-addon1">Min</span>
-				<input type="number" class="form-control"  aria-describedby="basic-addon1" name="min-engine" required>
-			</div>
-		</div>
-		<div class="form-group contextualItems">
-			<div class= "input-group">
-				<span class="input-group-addon">
-					<div class="radio-inline">
-						<label class="active"><input type="radio" name ="type-engine" aria-label="Step" checked="" value="step">Step</label>
-					</div>
-
-					<div class="radio-inline">
-						<label><input type="radio" name ="type-engine" aria-label="Step" value="count">Count</label>
-					</div>
-				</span>
-				<input type="number" class="form-control"  name="type-engine-value" aria-describedby="basic-addon1" required>
-			</div>
-		</div>
-		<hr class="contextualItems">
 		<h5 class="contextualItems">Dyno settings:</h5>
-		<div class="form-group contextualItems">
-			<!--label for="type" class="control-label">Max:</label-->
-			<div class="input-group">
-				<span class="input-group-addon" id="basic-addon1">Max</span>
-				<input type="number" name="max-dyno" class="form-control"  aria-describedby="basic-addon1" required>
-			</div>
-		</div>
 		<div class="form-group contextualItems">
 			<!--label for="type" class="control-label">Min:</label-->
 			<div class="input-group">
 				<span class="input-group-addon" id="basic-addon1">Min</span>
 				<input type="number" name="min-dyno" class="form-control"  aria-describedby="basic-addon1" required>
+			</div>
+		</div>
+		<div class="form-group contextualItems">
+			<div class="input-group">
+				<span class="input-group-addon" id="basic-addon1">Max</span>
+				<input type="number" name="max-dyno" class="form-control"  aria-describedby="basic-addon1" required>
 			</div>
 		</div>
 		<div class="form-group contextualItems">
@@ -87,6 +58,34 @@ var str_wizardModal = `
 					</div>
 				</span>
 				<input type="number" class="form-control"  name="type-dyno-value" aria-describedby="basic-addon1" required>
+			</div>
+		</div>
+		<hr class="contextualItems">
+		<h5 class="contextualItems">Engine settings:</h5>
+		<div class="form-group contextualItems">
+			<div class="input-group">
+				<span class="input-group-addon" id="basic-addon1">Min</span>
+				<input type="number" class="form-control"  aria-describedby="basic-addon1" name="min-engine" required>
+			</div>
+		</div>
+		<div class="form-group contextualItems">
+			<div class="input-group">
+				<span class="input-group-addon" id="basic-addon1">Max</span>
+				<input type="number" class="form-control"  aria-describedby="basic-addon1" name="max-engine" required>
+			</div>
+		</div>
+		<div class="form-group contextualItems">
+			<div class= "input-group">
+				<span class="input-group-addon">
+					<div class="radio-inline">
+						<label class="active"><input type="radio" name ="type-engine" aria-label="Step" checked="" value="step">Step</label>
+					</div>
+
+					<div class="radio-inline">
+						<label><input type="radio" name ="type-engine" aria-label="Step" value="count">Count</label>
+					</div>
+				</span>
+				<input type="number" class="form-control"  name="type-engine-value" aria-describedby="basic-addon1" required>
 			</div>
 		</div>
 	</form>

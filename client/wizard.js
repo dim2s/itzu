@@ -1,5 +1,5 @@
 var wizard = (function (){
-
+	const fixedLength = 1;
 	var engine = {};
 	var dyno = {};
 	var control = {};
@@ -24,9 +24,9 @@ var wizard = (function (){
 			for( var dyno_setvalue = dyno.max ; dyno_setvalue >= dyno.min ; dyno_setvalue -= dyno.step )
 				for( var engine_setvalue = engine.max ; engine_setvalue >= engine.min ; engine_setvalue -= engine.step ) {
 					var obj ={};
-					obj[desc.engine] = engine_setvalue;
-					obj[desc.dyno] = dyno_setvalue;
-					obj[desc.ctrltime] = control.time;
+					obj[desc.engine] = engine_setvalue.toFixed(fixedLength);
+					obj[desc.dyno] = dyno_setvalue.toFixed(fixedLength);
+					obj[desc.ctrltime] = control.time.toFixed(fixedLength);
 					obj[desc.ctrlmode] = control.mode;
 					obj[desc.active] = 1;
 					obj[desc.selected] = 0;
@@ -42,9 +42,9 @@ var wizard = (function (){
 			for( var dyno_setvalue = dyno.min ; dyno_setvalue <= dyno.max ; dyno_setvalue += dyno.step )
 				for( var engine_setvalue = engine.min ; engine_setvalue <= engine.max ; engine_setvalue += engine.step ) {
 					var obj ={};
-					obj[desc.engine] = engine_setvalue;
-					obj[desc.dyno] = dyno_setvalue;
-					obj[desc.ctrltime] = control.time;
+					obj[desc.engine] = engine_setvalue.toFixed(fixedLength);
+					obj[desc.dyno] = dyno_setvalue.toFixed(fixedLength);
+					obj[desc.ctrltime] = control.time.toFixed(fixedLength);
 					obj[desc.ctrlmode] = control.mode;
 					obj[desc.active] = 1;
 					obj[desc.selected] = 0;

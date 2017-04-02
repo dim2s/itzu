@@ -269,13 +269,15 @@
 					$('circle#' + idx).attr('data-active', !isActive );
 				}
 
-				t1.on( 'select', function (e,dt,type,index) {
+
+				function selectHandler( dt, index, action ) {
+					var s = (action==="select") ? 1:0;
 					toggleChnDataTable_NewBtn() ;
 					toggleDataTable_EditRemoveBtn(dt) ;
 
 					//toggle the state of the select column value
 					index.forEach( function(i) { 
-						dt.cell(i,8).data(1);
+							dt.cell(i,8).data( s ) ;
 						});
 
 					var selectedRows = dt.rows('.selected');
@@ -288,18 +290,14 @@
 					}
 
 					dt.rows().draw();	
-					//we draw the chart based on the regulation mode of
-					// the first selected Item
-					//	.classed('selected', !oneCircle.classed('selected'));
+				}
+
+				t1.on( 'select', function (e,dt,type,index) {
+					selectHandler( dt, index, "select" ) 
 				} );
 
 				t1.on( 'deselect', function (e,dt,type,index) {
-					toggleChnDataTable_NewBtn() ;
-					toggleDataTable_EditRemoveBtn(dt) ;
-					index.forEach ( function(i) {
-						dt.cell(i,8).data(0);
-						});
-					dt.rows().draw();
+					selectHandler( dt, index, "deselect" ) 
 				} );
 
 
@@ -467,7 +465,7 @@
 						
 						t1.clear();
 						t1.rows.add(rows).draw();
-
+						t1.row(0).select();
 						$('#formModal').modal('hide');
 				});
 

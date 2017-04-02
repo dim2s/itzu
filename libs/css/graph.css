@@ -9,6 +9,7 @@ circle {
 	fill: white;
 	stroke: steelblue;
 	stroke-width: 3px;
+	cursor: pointer;
 }
 
 circle[data-selected=true] {
@@ -17,6 +18,11 @@ circle[data-selected=true] {
 
 circle[data-active=false] {
 	opacity: 0.4;
+}
+
+
+.dataTable tbody > tr > td.select-checkbox {
+	cursor: pointer;
 }
 
 .dataTable tbody > tr > td {

@@ -137,6 +137,18 @@ var Chart = function () {
 		}
 	}
 
+	// myDomain:
+	// compute a slightly larger domain he domain
+	function myDomain( data ) {
+		const K = 0.1; // oversize ration
+		var d;	
+		d =	d3.extent(data);
+
+		d[0] = d[0] - K*Math.abs(d[0]);
+		d[1] = d[1] + K*Math.abs(d[1]);
+		return d;
+	}
+
 	// myInit:
 	// prepare everything in order to be able to draw the chart
 	function myInit(opList=[],t="N/C_BRT_5H") {
@@ -149,16 +161,15 @@ var Chart = function () {
 		//Update the x-scale
 		//the bigger domain between the default one and the inputs data
 		_xScale
-			.domain(d3.extent(
-						opList.map( function(d) { return parseFloat(d.opDyno);})
-						.concat(chartType[_type].dynoDomain)))
+			.domain(myDomain(
+					   	opList.map( function(d) { return parseFloat(d.opDyno);})
+						 .concat(chartType[_type].dynoDomain) ))
 			.range([0, _innerSize.width]);
 		
 		//Update the y-scale
 		_yScale
-			.domain(d3.extent(
-						opList.map( function(d) { return parseFloat(d.opEngine);})
-						.concat(chartType[_type].engineDomain)))
+			.domain(myDomain( opList.map( function(d) { return parseFloat(d.opEngine);})
+						 .concat(chartType[_type].engineDomain) ))
 			.range([_innerSize.height, 0]);
 
 		//select the svg element, if it exists

@@ -101,12 +101,14 @@
 		<script type="text/javascript" src="libs/dataTables.autoFill.min.js"></script>
 		<!-- d3.js 4.7.3 Library -->
 		<script type="text/javascript" src="libs/d3.min.js"></script>
+		<script type="text/javascript" src="libs/murmurhash2_gc.js"></script>
 		<script type="text/javascript" src="client/chnModal.js"></script>
 		<script type="text/javascript" src="client/opModal.js"></script>
 		<script type="text/javascript" src="client/wizardModal.js"></script>
 		<script type="text/javascript" src="client/chnlabellist.js"></script>
 		<script type="text/javascript" src="client/chart.js"></script>
 		<script type="text/javascript" src="client/wizard.js"></script>
+		<script type="text/javascript" src="client/hash.js"></script>
 		<!--script src="libs/chartist.min.js"></script-->
 
 		<script type="text/javascript">
@@ -173,7 +175,8 @@
 						{ text: "Import A2L", name: "chnImport-btn"} 
 					]	
 				});
-					
+
+			// rowReorder seems not to be compatible with select	
 				var t1 = $('#opDataTable').DataTable({
 					//ajax : {
 					//	url :"/opImport.json",
@@ -184,7 +187,8 @@
 						{ orderable: false, targets: '_all'},
 						{ title: "<span id='op-select-all'></span>"     ,  targets:0 , data: null,       className: 'select-checkbox',  width: "10px", defaultContent: "" },
 						{ title: "State",  targets:7 , data: null,       className: 'active-control', defaultContent: "<i></i>" },
-						{ title: "#",      targets:1 , data: "opId",     className: 'reorder export', width: "10px", defaultContent: "" }, // start to 1
+						{ title: "Id",     targets:9 , data: "opId",     className: 'export', width: "10px", visible: false },
+						{ title: "#",      targets:1  , defaultContent: ""},
 						{ title: "Activ",  targets:6 , data: "opActive", className: 'exportCSV', visible: false , defaultContent: "1" },
 						{ title: "Selected",  targets:8 , data: "opSelected",  visible: false , defaultContent: "0" },
 						{ title: "Mode",   targets:2 , data: "opMode" ,  className: 'exportCSV'},
@@ -258,7 +262,15 @@
 										.toArray();
 
 				}
-				
+
+
+					
+				t1.on( 'order.dt', function () {
+					t1.column(1, { order:'applied'}).nodes().each( function (cell, i) {
+									cell.innerHTML = i;
+					} );
+				} ).draw();
+						
 				t1.on( 'draw', function (e,dt,type,index) {
 					var data = selectRowToDraw(targetMode); 
 					chart.draw(data);
@@ -500,11 +512,13 @@
 
 					//some times we will add a new row, in other case we will edit the existing row	
 					if( recipient === allowedBtn[1] ) {
+						inputObj.opId = getNewId();
 						dt.row.add(inputObj).draw();
 					} else { 
 						//we can use indexes as we're supposed to have only on row selected
 						//make sure it is always the case other wise it is a bug
 						var idx=dt.rows('.selected').indexes();
+						inputObj.opId=dt.row(idx).data().opId;
 						dt.row(idx).data(inputObj).draw();
 					}
 

@@ -48,7 +48,7 @@ var wizard = (function (){
 					obj[desc.ctrlmode] = control.mode;
 					obj[desc.active] = 1;
 					obj[desc.selected] = 0;
-					obj[desc.id] = count++;
+					obj[desc.id] = getNewId();
 					seq.push (obj);		
 				}
 			return seq;

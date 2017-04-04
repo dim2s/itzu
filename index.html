@@ -109,6 +109,7 @@
 		<script type="text/javascript" src="client/chart.js"></script>
 		<script type="text/javascript" src="client/wizard.js"></script>
 		<script type="text/javascript" src="client/hash.js"></script>
+		<script type="text/javascript" src="client/set.js"></script>
 		<!--script src="libs/chartist.min.js"></script-->
 
 		<script type="text/javascript">
@@ -162,7 +163,8 @@
 						{title:"Trigger", targets:3, className: "chnTrigger", data: "chnTrigger"},
 						{title:"Type", targets:4, className : "chnType", data: "chnType" , name: "chnType", visible: false} ,
 						{title:"Unit", targets:5, className : "chnUnit", data: "chnUnit", visible: false }, 
-						{title:"Desc", targets:6, className : "chnDesc", data: "chnDesc" , visible: false} 
+						{title:"Desc", targets:6, className : "chnDesc", data: "chnDesc" , visible: false} ,
+						{title:"Targets", targets:7, className : "chnTargets", data: "chnTargets" , defaultContent: ""} 
 
 						],
 						dom: '<"#chnToolbar">Brtip',
@@ -189,8 +191,8 @@
 						{ title: "State",  targets:7 , data: null,       className: 'active-control', defaultContent: "<i></i>" },
 						{ title: "Id",     targets:9 , data: "opId",     className: 'export', width: "10px", visible: false },
 						{ title: "#",      targets:1  , defaultContent: ""},
-						{ title: "Activ",  targets:6 , data: "opActive", className: 'exportCSV', visible: false , defaultContent: "1" },
-						{ title: "Selected",  targets:8 , data: "opSelected",  visible: false , defaultContent: "0" },
+						{ title: "Activ",  targets:6 , data: "opActive", className: 'exportCSV', visible: true , defaultContent: "1" },
+						{ title: "Selected",  targets:8 , data: "opSelected",  visible: true , defaultContent: "0" },
 						{ title: "Mode",   targets:2 , data: "opMode" ,  className: 'exportCSV'},
 						{ title: "Dyno",   targets:3 , data: "opDyno" ,  className: 'exportCSV',},
 						{ title: "Engine", targets:4 , data: "opEngine", className: 'exportCSV'},
@@ -263,8 +265,6 @@
 
 				}
 
-
-					
 				t1.on( 'order.dt', function () {
 					t1.column(1, { order:'applied'}).nodes().each( function (cell, i) {
 									cell.innerHTML = i;
@@ -300,18 +300,11 @@
 						chart.init( data, targetMode );	
 						chart.draw(data);
 					}
-
-					dt.rows().draw();	
 				}
 
-				t1.on( 'select', function (e,dt,type,index) {
-					selectHandler( dt, index, "select" ) 
-				} );
-
-				t1.on( 'deselect', function (e,dt,type,index) {
-					selectHandler( dt, index, "deselect" ) 
-				} );
-
+				t1.on( 'select deselect', function (e,dt,type,index) {
+					selectHandler( dt, index, e.type ) 
+				} ).draw();
 
 				t2.on( 'select', function (e,dt,type,index) {
 					toggleDataTable_EditRemoveBtn(dt) ;
@@ -504,27 +497,70 @@
 						inputObj[$(this).attr('id')]= $(this).val() ;
 					});
 					
-					// unfortunately defaultContent is not set by datatable in this case so
-					// we should set it manualy 
-				 // todo: retrieve the value of the default content automaticaly
-					inputObj.opActive = ( inputObj.opActive === undefined ) ? 1 : inputObj.opActive ;
-					inputObj.opSelected = ( inputObj.opSelected === undefined ) ? 0 : inputObj.opSelected ;
+					inputObj.source = table_id;	
+					// todo:
+				    //  *	retrieve the value of the default content automaticaly
+				    //  *   defferentiate inputObj op vs chn
+
+					// in any cases during saving operation of 'chnDataTable' form
+					// the saved value is applied to the selection of rows in '#opDataTable'
+					var set = {};
+					if (inputObj.source === '#chnDataTable') {
+							set.value = inputObj.chnValue;
+							set.targets = new Set ($('#opDataTable').DataTable().rows('.selected').ids().toArray());
+					}	
 
 					//some times we will add a new row, in other case we will edit the existing row	
 					if( recipient === allowedBtn[1] ) {
-						inputObj.opId = getNewId();
+						if ( inputObj.source === "#opDataTable" ) { 
+						// unfortunately defaultContent is not set by datatable in this case so
+						// we should set it manualy 
+							inputObj.opId = getNewId();
+							inputObj.opActive =  1 ;
+							inputObj.opSelected = 0 ;
+						}
+						if ( inputObj.source === '#chnDataTable' ) {
+							inputObj.chnTargets = [];
+							inputObj.chnTargets.push(set);
+						}
 						dt.row.add(inputObj).draw();
 					} else { 
 						//we can use indexes as we're supposed to have only on row selected
 						//make sure it is always the case other wise it is a bug
 						var idx=dt.rows('.selected').indexes();
-						inputObj.opId=dt.row(idx).data().opId;
+						if ( inputObj.source === "#opDataTable" ) {
+							inputObj.opId = dt.row(idx).id();
+							inputObj.opActive = dt.row(idx).data().opActive;
+							inputObj.opSelected = dt.row(idx).data().opSelected;
+						}
+						
+						// no intersection allowed between the current selection and
+						// all other chnTargets
+						if ( inputObj.source = '#chnDataTable' ) {
+							dt.row(idx).data().chnTargets.forEach( function(obj) {
+								obj.targets.purge(set.targets);
+							});
+							
+							inputObj.chnTargets = dt.row(idx).data().chnTargets;
+							inputObj.chnTargets.push(set);
+						}
+						
 						dt.row(idx).data(inputObj).draw();
 					}
 
 					$('#formModal').modal('hide'); 
 				});
 
+				// return an array containing all the values for a given channels and a selection of operating
+				// points	
+				function getChnValuesFromSelection( idSet , channel ) {
+
+					return channel.opTargets.filter ( function(obj) {
+						return (obj.targets.intersection(idSet).size > 0);
+					}).map ( function(obj) {
+						return obj.value;
+					});
+				}
 
 				
 			}); // function.ready({})

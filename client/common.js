@@ -8,11 +8,14 @@
 			   - onreload page confirmation before loosing data
 			   - group row by type ( channel tab uniquement )
 			   - limit the number of row datalist can show ( or use JQuery flexdatalist plugin )
-			   - use the name of button instead of their indexes ( it can cause some bug if the order is changed )
 			   - autocomplete unit, description and type base on label selection
 			   - implement local storage feature
 			   - when filling form, goes to next input on enter key pressed event
 			   - mark select all check box when check
+			   - frontend user input validation ( using HTML5 feature like 'required' attribute for form' and JQuery form method )
+			   - handle submit event when save button is pressed :
+			    	for now I'm not able to catch it using JQuery
+						the usage of <input type="submit" make the page reload => data loss
 
 			   */
 			$(document).ready(function() {
@@ -54,13 +57,35 @@
 
 						],
 						dom: '<"#chnToolbar">Brtip',
-					buttons: [ // ** do not change the name attribute **
-						{ text:"New", name: "chnNew-btn"},
-						{ text:"Remove", name: "chnRemove-btn" },
-						{ text:"Edit", name: "chnEdit-btn", state:false},
-						{ text:"Merge", name: "chnMerge-btn"},
-						{ text:"Merge All", name: "chnMergeAll-btn"},
-						{ text: "Import A2L", name: "chnImport-btn"} 
+						buttons: [ // ** do not change the name attribute **
+							{ 
+								text:"New",
+							   	name: "new",
+								action: function(event,dt,button, config ) {
+											rowEditFormCreate(button,str_chnModal,dt.table().node().id).modal('show');
+										}
+							},
+							{ 
+								text:"Remove",
+								name: "remove",
+						   		action:	function( event, dt, btn, config ) {
+											removeRows(event, dt, btn, config);
+										}
+							},
+							{ 
+								text:"Edit",
+								name: "edit",
+							   	state:false,
+								action: function(event,dt,button,config) {
+											editRow(event,dt,button,str_chnModal);
+										}
+							},
+							{
+								text:"Merge",
+							   	name: "merge"
+							},
+							{ text:"Merge All", name: "chnMergeAll-btn"},
+							{ text: "Import A2L", name: "chnImport-btn"} 
 					]	
 				});
 
@@ -87,10 +112,34 @@
 					],
 					dom: '<"#opToolbar">Brtip',
 					buttons: [
-						{ text: 'New' },
-						{ text: 'Remove' },
-						{ text: 'Edit' },
-						{ text: 'Wizard' },
+						{ 
+							text: 'New' ,
+							name: "new",
+							action:	function(event,dt,button, config ) {
+										rowEditFormCreate(button,str_opModal,dt.table().node().id).modal('show');
+									}
+					   	},
+						{
+							text: 'Remove',
+							name: 'remove',
+					   		action: function( event, dt, btn, config ) {
+										removeRows(event, dt, btn, config);
+										toggleDataTable_EditRemoveBtn(dt) ;
+									}
+						},
+						{
+							text: 'Edit',
+							name: 'edit',
+					   		action: function(event,dt,button,config) {
+										editRow(event,dt,button,str_opModal);
+									}
+						},
+						{ 
+							text: 'Wizard' ,
+							action:	function(event, dt, button, config) {
+										wizardFormCreate(button,str_wizardModal,dt.table().node().id).modal('show');
+									}
+						},
 						{ 
 							text: 'Export CSV', 
 							extend: 'csvHtml5',
@@ -104,53 +153,7 @@
 					}	 
 				});
 
-				
-				if (t1.rows().count() === 0)
-					t1.buttons([1,2]).disable();
-
-				t2.buttons([0,1,2,3]).disable();
-
-
-				// toolbar definition
-				$('#opToolbar').html('<h4>Operating points definition</h4>');
-				$('#chnToolbar').html('<h4>Channels definition</h4>');
-
-				// make sure that chnDataTable 'new' button is activated only if 
-				// one operating point is selected
-				function toggleChnDataTable_NewBtn() { 
-					if ( t1.rows('.selected').count() > 0 ){
-						t2.button(0).enable();
-					} else {
-						t2.button(0).disable();
-					}
-				}
-
-
-				// rules:  
-				// 	* you can edit only one item at the time
-				//  * you can remove several rows at the same time
-			   //   * items should be selected to be edit or remove	
-				function toggleDataTable_EditRemoveBtn( dt ) { 
-					var count = dt.rows('.selected').count();  
-					if ( count === 0 )
-						dt.buttons([1,2]).disable();
-					if ( count === 1 )
-						dt.buttons([1,2]).enable();
-					if (count > 1) {
-						dt.button(2).disable();
-						dt.button(1).enable();
-					}
-				}
-
-				function selectRowToDraw(mode) {
-						return $('#opDataTable')
-										.DataTable()
-										.rows( function(idx,d,node) { return (d.opMode == mode) ? true : false ;} )
-										.data()
-										.toArray();
-
-				}
-
+				//************************************* datatable event handlers **********************************************
 				t1.on( 'order.dt', function () {
 					t1.column(1, { order:'applied'}).nodes().each( function (cell, i) {
 									cell.innerHTML = i;
@@ -161,32 +164,6 @@
 					var data = selectRowToDraw(targetMode); 
 					chart.draw(data);
 				} );
-
-				function toggleNodeSelectActive(idx) {
-					var isActive = ( $('circle#' + idx).attr('data-active') == "true");
-					$('circle#' + idx).attr('data-active', !isActive );
-				}
-
-
-				function selectHandler( dt, index, action ) {
-					var s = (action==="select") ? 1:0;
-					toggleChnDataTable_NewBtn() ;
-					toggleDataTable_EditRemoveBtn(dt) ;
-
-					//toggle the state of the select column value
-					index.forEach( function(i) { 
-							dt.cell(i,8).data( s ) ;
-						});
-
-					var selectedRows = dt.rows('.selected');
-					if (selectedRows.count() > 0 ) {
-						targetMode = selectedRows.data()[0].opMode;
-						var data = selectRowToDraw(targetMode); 
-   
-						chart.init( data, targetMode );	
-						chart.draw(data);
-					}
-				}
 
 				t1.on( 'select deselect', function (e,dt,type,index) {
 					selectHandler( dt, index, e.type ) 
@@ -200,6 +177,7 @@
 					toggleDataTable_EditRemoveBtn(dt) ;
 				} );
 
+				//************************************* jQuery event handlers **********************************************
 				//Todo: bugfix when using global select the chart is not refresh
 				$('#opDataTable_wrapper').on( 'click' ,'th.select-checkbox',  function () {
 						var dt=$('#opDataTable').DataTable();
@@ -228,101 +206,6 @@
 						}
 
 						t1.row(tr_idx).data(d).draw();
-				});
-
-				//remove selected row in the t2 table
-				t2.button(1).action( function( event, dt, btn, config ) {
-					removeRows(event, dt, btn, config);
-				});
-
-				t1.button(1).action( function( event, dt, btn, config ) {
-					removeRows(event, dt, btn, config);
-					toggleDataTable_EditRemoveBtn(dt) ;
-				});
-
-
-				function removeRows(event, dt, btn, config) {
-					dt.rows('.selected').remove().draw();
-					if ( dt.rows().count() === 0)
-						dt.buttons([1,2]).disable();
-				};
-
-				//type = 'chn' or 'op' 
-				//mais est-ce vraiment necessaire puisqu'il s'agit de la meme fenetre
-				function rowEditFormCreate(b,str,dt_id) {
-					var m=$('#formModal');
-					m.find('.modal-footer').append(
-						'<button type="button" class="btn btn-primary contextualItems" id="ListModify" data-tableid="' +dt_id+ '" data-btntype="'+b.text()+'">Save</button>'
-					//	'<input type="submit" class="btn btn-primary contextualItems" id="btn-newSetvalue" value="Save" form="formNewSetValue">'
-					);
-					m.find('.modal-title').text(b.text());
-					m.find('.modal-body').append(str);
-
-					//initialize the datalist only for chnDataTable
-					if ( dt_id === 'chnDataTable' )
-						loadChnList();
-
-					return m;
-				}
-
-				function wizardFormCreate(b,str,dt_id) {
-					var m = $('#formModal');
-
-					m.find('.contextualItems').remove();
-					m.find('.modal-title').text(b.text());
-					m.find('.modal-body').append(str);
-					m.find('.modal-footer').append(
-						'<input type="submit" class="btn btn-primary contextualItems" id="btn-wizard" value="Save" form="form-wizard">'
-					);
-					return m;
-				}
-
-				function editRow(e,dt,button,template) {
-
-					var rowSelected = dt.rows( '.selected' );
-
-					if( rowSelected.count() === 1) {
-						var m= rowEditFormCreate(button,template,dt.table().node().id ); 
-						console.log(rowSelected.data()[0]);	
-						$('#formModal *').filter('.dataTableAutoImport').each( function(i) {
-							$(this).val(rowSelected.data()[0][$(this).attr('id')]) ;
-						});
-					
-						m.modal('show'); 
-					} else {
-						alert( 'something goes wrong! you should not be in this state....' );
-					}	
-				}
-
-				// define the action for edit a row
-				t2.button(2).action( function(event,dt,button,config){
-					editRow(event,dt,button,str_chnModal);
-				});
-
-				t1.button(2).action( function(event,dt,button,config){
-					editRow(event,dt,button,str_opModal);
-				});
-
-				t1.button(3).action( function(event, dt, button, config) {
-					var m= wizardFormCreate(button,str_wizardModal,dt.table().node().id) 
-
-					m.modal('show');
-				});
-
-
-				// define the action for the 'new row' button of t2 table
-				/*TODO:
-				    1- frontend user input validation ( using HTML5 feature like 'required' attribute for form' and JQuery form method )
-					2- handle submit event when save button is pressed :
-						for now I'm not able to catch it using JQuery
-						the usage of <input type="submit" make the page reload => data loss
-				   */
-				t2.button(0).action ( function(event,dt,button, config ) {
-					rowEditFormCreate(button,str_chnModal,dt.table().node().id).modal('show');
-				});
-
-				t1.button(0).action ( function(event,dt,button, config ) {
-					rowEditFormCreate(button,str_opModal,dt.table().node().id).modal('show');
 				});
 
 				/*TODO: triggered when a new label is selected
@@ -437,17 +320,139 @@
 					$('#formModal').modal('hide'); 
 				});
 
+				//************************************* datatable common logic **********************************************
+				if (t1.rows().count() === 0)
+					t1.buttons(['remove:name','edit:name']).disable();
+
+				t2.buttons(['new:name','edit:name','remove:name','merge:name']).disable();
+
+
+				// toolbar definition
+				$('#opToolbar').html('<h4>Operating points definition</h4>');
+				$('#chnToolbar').html('<h4>Channels definition</h4>');
+
+				//************************************* helper function **********************************************
+				// make sure that chnDataTable 'new' button is activated only if 
+				// one operating point is selected
+				function toggleChnDataTable_NewBtn() { 
+					if ( t1.rows('.selected').count() > 0 ){
+						t2.button('new:name').enable();
+					} else {
+						t2.button('new:name').disable();
+					}
+				}
+
+				// rules:  
+				// 	* you can edit only one item at the time
+				//  * you can remove several rows at the same time
+			   //   * items should be selected to be edit or remove	
+				function toggleDataTable_EditRemoveBtn( dt ) { 
+					var count = dt.rows('.selected').count();  
+					if ( count === 0 )
+						dt.buttons(['remove:name','edit:name']).disable();
+					if ( count === 1 )
+						dt.buttons(['remove:name','edit:name']).enable();
+					if (count > 1) {
+						dt.button('edit:name').disable();
+						dt.button('remove:name').enable();
+					}
+				}
+
+				function selectRowToDraw(mode) {
+						return $('#opDataTable')
+										.DataTable()
+										.rows( function(idx,d,node) { return (d.opMode == mode) ? true : false ;} )
+										.data()
+										.toArray();
+
+				}
+
+				function toggleNodeSelectActive(idx) {
+					var isActive = ( $('circle#' + idx).attr('data-active') == "true");
+					$('circle#' + idx).attr('data-active', !isActive );
+				}
+
+				function selectHandler( dt, index, action ) {
+					var s = (action==="select") ? 1:0;
+					toggleChnDataTable_NewBtn() ;
+					toggleDataTable_EditRemoveBtn(dt) ;
+
+					//toggle the state of the select column value
+					index.forEach( function(i) { 
+							dt.cell(i,8).data( s ) ;
+						});
+
+					var selectedRows = dt.rows('.selected');
+					if (selectedRows.count() > 0 ) {
+						targetMode = selectedRows.data()[0].opMode;
+						var data = selectRowToDraw(targetMode); 
+   
+						chart.init( data, targetMode );	
+						chart.draw(data);
+					}
+				}
+
+				function removeRows(event, dt, btn, config) {
+					dt.rows('.selected').remove().draw();
+					if ( dt.rows().count() === 0)
+						dt.buttons(['remove:name','edit:name']).disable();
+				};
+				
+				//type = 'chn' or 'op' 
+				//mais est-ce vraiment necessaire puisqu'il s'agit de la meme fenetre
+				function rowEditFormCreate(b,str,dt_id) {
+					var m=$('#formModal');
+					m.find('.modal-footer').append(
+						'<button type="button" class="btn btn-primary contextualItems" id="ListModify" data-tableid="' +dt_id+ '" data-btntype="'+b.text()+'">Save</button>'
+					//	'<input type="submit" class="btn btn-primary contextualItems" id="btn-newSetvalue" value="Save" form="formNewSetValue">'
+					);
+					m.find('.modal-title').text(b.text());
+					m.find('.modal-body').append(str);
+
+					//initialize the datalist only for chnDataTable
+					if ( dt_id === 'chnDataTable' )
+						loadChnList();
+
+					return m;
+				}
+
+				function wizardFormCreate(b,str,dt_id) {
+					var m = $('#formModal');
+
+					m.find('.contextualItems').remove();
+					m.find('.modal-title').text(b.text());
+					m.find('.modal-body').append(str);
+					m.find('.modal-footer').append(
+						'<input type="submit" class="btn btn-primary contextualItems" id="btn-wizard" value="Save" form="form-wizard">'
+					);
+					return m;
+				}
+
+				function editRow(e,dt,button,template) {
+
+					var rowSelected = dt.rows( '.selected' );
+
+					if( rowSelected.count() === 1) {
+						var m= rowEditFormCreate(button,template,dt.table().node().id ); 
+						console.log(rowSelected.data()[0]);	
+						$('#formModal *').filter('.dataTableAutoImport').each( function(i) {
+							$(this).val(rowSelected.data()[0][$(this).attr('id')]) ;
+						});
+					
+						m.modal('show'); 
+					} else {
+						alert( 'something goes wrong! you should not be in this state....' );
+					}	
+				}
+
 				// return an array containing all the values for a given channels and a selection of operating
 				// points	
 				function getChnValuesFromSelection( idSet , channel ) {
-
 					return channel.opTargets.filter ( function(obj) {
 						return (obj.targets.intersection(idSet).size > 0);
 					}).map ( function(obj) {
 						return obj.value;
 					});
 				}
-
-				
 			}); // function.ready({})
 

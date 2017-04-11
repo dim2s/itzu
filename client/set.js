@@ -1,45 +1,44 @@
 // add some operation to Set object
 
-
 Set.prototype.isSuperset = function(subset) {
-	  for (var elem of subset) {
-		      if (!this.has(elem)) {
-				        return false;
-						    }
-			    }
-	    return true;
+	for (var elem of subset) {
+		if (!this.has(elem)) {
+			return false;
+		}
+	}
+	return true;
 }
 
 Set.prototype.union = function(setB) {
-	  var union = new Set(this);
-	    for (var elem of setB) {
-			    union.add(elem);
-				  }
-		  return union;
+	var union = new Set(this);
+	for (var elem of setB) {
+		union.add(elem);
+	}
+	return union;
 }
 
 Set.prototype.intersection = function(setB) {
-	  var intersection = new Set();
-	    for (var elem of setB) {
-			    if (this.has(elem)) {
-					      intersection.add(elem);
-						      }
-				  }
-		  return intersection;
+	var intersection = new Set();
+	for (var elem of setB) {
+		if (this.has(elem)) {
+			intersection.add(elem);
+		}
+	}
+	return intersection;
 }
 
 Set.prototype.purge = function(setB) {
-	    for (var elem of setB) {
-			    if (this.has(elem)) {
-					      this.delete(elem);
-						      }
-				  }
+	for (var elem of setB) {
+		if (this.has(elem)) {
+			this.delete(elem);
+		}
+	}
 }
 
 Set.prototype.difference = function(setB) {
-	  var difference = new Set(this);
-	    for (var elem of setB) {
-			    difference.delete(elem);
-				  }
-		  return difference;
+	var difference = new Set(this);
+	for (var elem of setB) {
+		difference.delete(elem);
+	}
+	return difference;
 }

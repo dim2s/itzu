@@ -55,18 +55,22 @@ $(document).ready(function() {
 				data: null, //"chnValue",
 				render: function( data, type, row, meta) {
 					var idSet = $('#opDataTable').DataTable().rows('.selected').ids().toArray();
-					var values = getChnValuesFromSelection( idSet , row ) ;
+					var status = row.chnSetValues.status( idSet ) ;
 					var str = '';
 
-					switch (values.length) {
-						case 0 :
+					switch (status) {
+						case "sticky" :
+							str = row.chnSetValues.value() + " " + row["chnUnit"] + "<span class='glyphicon glyphicon-pushpin'></span>";
+							break;
+						case "multiple" :
+							str = "<span class='glyphicon glyphicon-option-horizontal'></span>";
+							break;
+						case "empty" :
 							str = "<span class='glyphicon glyphicon-asterisk'></span>";
 							break;
-						case 1 : 
-							str = values.toString() + " " + row["chnUnit"];
+						case "single" : 
+							str = row.chnSetValues.getItemById(idSet)[0].value().toString() + " " + row["chnUnit"];
 							break;
-						default :
-							str = "<span class='glyphicon glyphicon-option-horizontal'></span>";
 					}
 					return str; 
 				} 
@@ -107,8 +111,24 @@ $(document).ready(function() {
 				text:"Merge",
 				name: "merge"
 			},
-			{ text:"Merge All", name: "chnMergeAll-btn"},
-			{ text: "Import A2L", name: "chnImport-btn"} 
+			{ 
+				text:"Merge All",
+				name: "mergeAll",
+				action: function( event, dt, button, config) {
+					var rows = dt.rows('.selected').data().toArray();
+					
+					rows.forEach( function (v) {
+						v.chnSetValues.merge(v.chnSetValues.values()[0].value());
+					});
+				}
+			},
+			{ 
+				text: "Import A2L",
+				name: "chnImport-btn",
+				action: function(event, dt, button, config) {
+					alert("Import A2l: fonction pas encore implémentée");
+				}
+			} 
 		]
 	});
 
@@ -193,6 +213,7 @@ $(document).ready(function() {
 
 	t2.on( 'select deselect', function (e,dt,type,index) {
 		toggleDataTable_EditRemoveBtn(dt) ;
+		toggleChnDataTable_NewBtn() ;
 	} );
 
 	t2.on( 'draw', function (e, settings) {
@@ -313,8 +334,8 @@ $(document).ready(function() {
 			}
 			if ( inputObj.source === '#chnDataTable' ) {
 				// we also supposed the unicity of the setvalues !!must be checked by the form input
-				inputObj.chnTargets = [];
-				inputObj.chnTargets.push(set);
+				inputObj.chnSetValues = new SetValues();;
+				inputObj.chnSetValues.update(set.value, set.targets);
 			}
 			dt.row.add(inputObj).draw();
 		} else { 
@@ -330,12 +351,8 @@ $(document).ready(function() {
 			// no intersection allowed between the current selection and
 			// all other chnTargets
 			if ( inputObj.source = '#chnDataTable' ) {
-				dt.row(idx).data().chnTargets.forEach( function(obj) {
-					obj.targets.purge(set.targets);
-				});
-				
-				inputObj.chnTargets = dt.row(idx).data().chnTargets;
-				inputObj.chnTargets.push(set);
+				inputObj.chnSetValues = dt.row(idx).data().chnSetValues;
+				inputObj.chnSetValues.update(set.value, set.targets);
 			}
 			dt.row(idx).data(inputObj).draw();
 		}
@@ -346,7 +363,7 @@ $(document).ready(function() {
 	if (t1.rows().count() === 0)
 		t1.buttons(['remove:name','edit:name']).disable();
 
-	t2.buttons(['new:name','edit:name','remove:name','merge:name']).disable();
+	t2.buttons(['new:name','edit:name','remove:name','merge:name','mergeAll:name']).disable();
 
 	// toolbar definition
 	$('#opToolbar').html('<h4>Operating points definition</h4>');
@@ -356,11 +373,26 @@ $(document).ready(function() {
 	// make sure that chnDataTable 'new' button is activated only if 
 	// one operating point is selected
 	function toggleChnDataTable_NewBtn() { 
-		if ( t1.rows('.selected').count() > 0 ){
-			t2.button('new:name').enable();
+		var selectedOp = t1.rows(".selected");
+		if ( selectedOp.count() > 0 ){
+			t2.button("new:name").enable();
 		} else {
-			t2.button('new:name').disable();
+			t2.button("new:name").disable();
 		}
+		
+		var selectedChn = t2.rows(".selected");
+		var ids = selectedOp.ids().toArray();
+		t2.button("mergeAll:name").disable();
+		if( selectedChn.count() > 0 ) {
+			//todo:regarder si on ne peut pas utiliser l'api de datatable
+			//au lieu de convertir en tableau
+			if( selectedChn.data().toArray().every( function(v) {
+				return v.chnSetValues.status(ids) === "single"; }
+			)) {
+				t2.button("mergeAll:name").enable();
+			}
+		} 
+		
 	}
 
 	// rules:  
@@ -477,15 +509,4 @@ $(document).ready(function() {
 			return obj.value;
 		});
 	}
-
-	
-	function getValue( id, channel ) {
-
-		var chn = channel.chnTargets.filter ( function(obj) { return obj.targets.has(id); });
-
-		if ( chn.length === 1 ) { 
-			return chn[0].value;
-		}
-	}
-
 }); // function.ready({})

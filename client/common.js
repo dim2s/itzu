@@ -51,7 +51,7 @@ $(document).ready(function() {
 			{
 				title:"Value",
 				targets:2,
-				//className: "chnValue",
+				className: "chnValue",
 				data: null, //"chnValue",
 				render: function( data, type, row, meta) {
 					var idSet = $('#opDataTable').DataTable().rows('.selected').ids().toArray();
@@ -60,16 +60,16 @@ $(document).ready(function() {
 
 					switch (status) {
 						case "sticky" :
-							str = row.chnSetValues.value() + " " + row["chnUnit"] + "<span class='glyphicon glyphicon-pushpin'></span>";
+							str = row.chnSetValues.filter(idSet)[0].value + " " + row["chnUnit"] + "<span class='glyphicon glyphicon-pushpin'></span>";
 							break;
-						case "multiple" :
+						case "multi" :
 							str = "<span class='glyphicon glyphicon-option-horizontal'></span>";
 							break;
 						case "empty" :
 							str = "<span class='glyphicon glyphicon-asterisk'></span>";
 							break;
 						case "single" : 
-							str = row.chnSetValues.getItemById(idSet)[0].value().toString() + " " + row["chnUnit"];
+							str = row.chnSetValues.filter(idSet)[0].value + " " + row["chnUnit"];
 							break;
 					}
 					return str; 
@@ -115,10 +115,10 @@ $(document).ready(function() {
 				text:"Merge All",
 				name: "mergeAll",
 				action: function( event, dt, button, config) {
-					var rows = dt.rows('.selected').data().toArray();
+					var rows = dt.rows('.selected');
 					
-					rows.forEach( function (v) {
-						v.chnSetValues.merge(v.chnSetValues.values()[0].value());
+					rows.every( function (rowIdx, tableLoop, rowLoop ) {
+						dt.row( rowIdx ).data().chnSetValues.mergeAll(dt.row( rowIdx ).data().chnValue);
 					});
 				}
 			},
@@ -334,8 +334,8 @@ $(document).ready(function() {
 			}
 			if ( inputObj.source === '#chnDataTable' ) {
 				// we also supposed the unicity of the setvalues !!must be checked by the form input
-				inputObj.chnSetValues = new SetValues();;
-				inputObj.chnSetValues.update(set.value, set.targets);
+				inputObj.chnSetValues = Channel().create();
+				inputObj.chnSetValues.add(set.value, set.targets);
 			}
 			dt.row.add(inputObj).draw();
 		} else { 
@@ -352,7 +352,7 @@ $(document).ready(function() {
 			// all other chnTargets
 			if ( inputObj.source = '#chnDataTable' ) {
 				inputObj.chnSetValues = dt.row(idx).data().chnSetValues;
-				inputObj.chnSetValues.update(set.value, set.targets);
+				inputObj.chnSetValues.add(set.value, set.targets);
 			}
 			dt.row(idx).data(inputObj).draw();
 		}

@@ -60,7 +60,7 @@ $(document).ready(function() {
 
 					switch (status) {
 						case "sticky" :
-							str = row.chnSetValues.filter(idSet)[0].value + " " + row["chnUnit"] + "<span class='glyphicon glyphicon-pushpin'></span>";
+							str=row.chnSetValues.default + " " + row["chnUnit"] + "<span class='glyphicon glyphicon-pushpin'></span>";
 							break;
 						case "multi" :
 							str = "<span class='glyphicon glyphicon-option-horizontal'></span>";

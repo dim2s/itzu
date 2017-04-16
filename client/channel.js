@@ -27,7 +27,7 @@ var Channel = function() {
 		try { 
 			this.deleteId(ids);
 			if ( this.db[i] ) {
-				this.db[i].targets.union( newTargets );
+				this.db[i].targets = this.db[i].targets.union( newTargets );
 			} else {
 				i = this.db.push( { "value":value, "targets": newTargets }) - 1;
 			}
@@ -55,23 +55,17 @@ var Channel = function() {
 	}
 
 	function __status__ ( ids ) {
-		if ( arguments.length === 0 ) {
-			if ( this.db.length === 0 ) {
-				if ( !this.default ) {
-					return "empty";
-				} else {
-					return "sticky";
-				}
+		if ( this.db.length === 0 ) {
+			if ( !this.default ) {
+				return "empty";
 			} else {
-				return "multi";
+				return "sticky";
 			}
 		} else {
 			let r = this.filter(ids);
 			if( r.length === 1 ) {
 				if ( !r[0].value ) {
 					return "empty";
-				} else if (r[0].value === this.default) {
-					return "sticky";
 				} else {
 					return "single";
 				}
@@ -93,7 +87,7 @@ var Channel = function() {
 			}
 		}
 		
-		// l'intersection des elemeents qui n'ont pas ete trouve avec les ids de l'objet ont la valeur par default
+		// l'intersection des elements qui n'ont pas ete trouve avec les ids de l'objet, ont la valeur par default
 		let itemWithDefaultValue = setB.difference(itemsFound);
 		if ( itemWithDefaultValue.size > 0 ) {
 			result.push({value: this.default, targets: itemWithDefaultValue});

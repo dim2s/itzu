@@ -26,10 +26,10 @@ var Channel = function() {
 
 		try { 
 			this.deleteId(ids);
-			if ( i === -1 ) {
-				i = this.db.push( { "value":value, "targets": newTargets }) - 1;
-			} else {
+			if ( this.db[i] ) {
 				this.db[i].targets.union( newTargets );
+			} else {
+				i = this.db.push( { "value":value, "targets": newTargets }) - 1;
 			}
 		} catch( err ) {
 			console.log("something goes wrong, rollingback changes");

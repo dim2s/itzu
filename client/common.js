@@ -30,7 +30,7 @@ $(document).ready(function() {
 		"scrollY": "600px",
 		"scrollCollapse": true,
 		"select" : { 
-			style: "multi", 
+			style: "os", 
 			selector: 'td:first-child'
 		}
 	});
@@ -78,9 +78,7 @@ $(document).ready(function() {
 			{title:"Trigger", targets:3, className: "chnTrigger", data: "chnTrigger"},
 			{title:"Type", targets:4, className : "chnType", data: "chnType" , name: "chnType", visible: false} ,
 			{title:"Unit", targets:5, className : "chnUnit", data: "chnUnit", visible: false }, 
-			{title:"Desc", targets:6, className : "chnDesc", data: "chnDesc" , visible: false} ,
-			{title:"Special", targets:7, className : "chnSpecialValues", data: "chnSpecialValues" , defaultContent: "none"} ,
-			{title:"Global", targets:8, className : "chnGlobalValue", data: "chnGlobalValue" , defaultContent: "*"} 
+			{title:"Desc", targets:6, className : "chnDesc", data: "chnDesc" , visible: false}
 
 		],
 		dom: '<"#chnToolbar">Brtip',
@@ -107,10 +105,6 @@ $(document).ready(function() {
 						editRow(event,dt,button,str_chnModal);
 					}
 			},
-			{
-				text:"Merge",
-				name: "merge"
-			},
 			{ 
 				text:"Merge All",
 				name: "mergeAll",
@@ -120,6 +114,7 @@ $(document).ready(function() {
 					rows.every( function (rowIdx, tableLoop, rowLoop ) {
 						dt.row( rowIdx ).data().chnSetValues.mergeAll(dt.row( rowIdx ).data().chnValue);
 					});
+					dt.rows().invalidate('data').draw('false');
 				}
 			},
 			{ 
@@ -363,7 +358,7 @@ $(document).ready(function() {
 	if (t1.rows().count() === 0)
 		t1.buttons(['remove:name','edit:name']).disable();
 
-	t2.buttons(['new:name','edit:name','remove:name','merge:name','mergeAll:name']).disable();
+	t2.buttons(['new:name','edit:name','remove:name','mergeAll:name']).disable();
 
 	// toolbar definition
 	$('#opToolbar').html('<h4>Operating points definition</h4>');
@@ -387,7 +382,7 @@ $(document).ready(function() {
 			//todo:regarder si on ne peut pas utiliser l'api de datatable
 			//au lieu de convertir en tableau
 			if( selectedChn.data().toArray().every( function(v) {
-				return v.chnSetValues.status(ids) === "single"; }
+				return v.chnSetValues.status(ids) !== "multi"; }
 			)) {
 				t2.button("mergeAll:name").enable();
 			}

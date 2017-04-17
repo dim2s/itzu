@@ -10,7 +10,6 @@
 	autocomplete unit, description and type base on label selection
 	implement local storage feature
 	when filling form, goes to next input on enter key pressed event
-	mark select all check box when check
 	frontend user input validation ( using HTML5 feature like 'required' attribute for form' and JQuery form method )
 	handle submit event when save button is pressed :
 	for now I'm not able to catch it using JQuery
@@ -137,81 +136,123 @@ $(document).ready(function() {
 		"columnDefs":[
 			{ orderable: false, targets: '_all'},
 			{ title: "<span id='op-select-all'></span>"     ,  targets:0 , data: null,       className: 'select-checkbox',  width: "10px", defaultContent: "" },
-			{ title: "State",  targets:7 , data: null,       className: 'active-control', defaultContent: "<i></i>" },
-			{ title: "Id",     targets:9 , data: "opId",     className: 'export', width: "10px", visible: false },
-			{ title: "#",      targets:1  , defaultContent: ""},
-			{ title: "Activ",  targets:6 , data: "opActive", className: 'exportCSV', visible: true , defaultContent: "1" },
-			{ title: "Selected",  targets:8 , data: "opSelected",  visible: true , defaultContent: "0" },
-			{ title: "Mode",   targets:2 , data: "opMode" ,  className: 'exportCSV'},
-			{ title: "Dyno",   targets:3 , data: "opDyno" ,  className: 'exportCSV',},
-			{ title: "Engine", targets:4 , data: "opEngine", className: 'exportCSV'},
-			{ title: "Time",   targets:5 , data: "opTime" ,  className: 'exportCSV'},
+			{ name: "index",	title: "#",		targets:1 , defaultContent: ""},
+			{ name: "mode",		title: "Mode",		targets:2 , data: "opMode" ,	},
+			{ name: "dyno",		title: "Dyno",		targets:3 , data: "opDyno" ,	},
+			{ name: "engine",	title: "Engine",	targets:4 , data: "opEngine",	},
+			{ name: "time",		title: "Time",		targets:5 , data: "opTime" ,	},
+			{ name: "active",	title: "Activ",		targets:6 , data: "opActive",	 visible: false , defaultContent: "1" },
+			{ name: "state", 	title: "State",		targets:7 , data: null,		className: 'active-control', defaultContent: "<i></i>" },
+			{ name: "selected",	title: "Selected",	targets:8 , data: "opSelected",	visible: false , defaultContent: "0" },
+			{ name: "id",		title: "Id",		targets:9 , data: "opId",	visible: false , width: "10px",  },
+			{ 
+				name: "channels",
+				title: "Channels",
+				targets:10,
+				data: null,
+				visible: false,
+				render: function ( data, type, row) {
+						return type === "export" ?  channelsCsvValue(row.opId.toString()) : data;
+					}
+			},
 		],
 		dom: '<"#opToolbar">Brtip',
 		buttons: [
 			{ 
-				text: 'New' ,
+				text: "New" ,
 				name: "new",
 				action:	function(event,dt,button, config ) {
-						rowEditFormCreate(button,str_opModal,dt.table().node().id).modal('show');
+						rowEditFormCreate(button,str_opModal,dt.table().node().id).modal("show");
 					}
 			},
 			{
-				text: 'Remove',
-				name: 'remove',
+				text: "Remove",
+				name: "remove",
 				action: function( event, dt, btn, config ) {
 						removeRows(event, dt, btn, config);
 						toggleDataTable_EditRemoveBtn(dt) ;
 					}
 			},
 			{
-				text: 'Edit',
-				name: 'edit',
+				text: "Edit",
+				name: "edit",
 				action: function(event,dt,button,config) {
 						editRow(event,dt,button,str_opModal);
 					}
 			},
 			{ 
-				text: 'Wizard' ,
+				text: "Wizard" ,
 				action:	function(event, dt, button, config) {
-						wizardFormCreate(button,str_wizardModal,dt.table().node().id).modal('show');
+						wizardFormCreate(button,str_wizardModal,dt.table().node().id).modal("show");
 					}
 			},
 			{ 
-				text: 'Export CSV', 
-				extend: 'csvHtml5',
-				fieldSeparator: ';',
-				exportOptions: { columns: '.exportCSV'}
+				text: "Export CSV", 
+				extend: "csvHtml5",
+				fieldSeparator: Config.csv.fieldSeparator,
+				exportOptions: { 
+					columns: ["activ:name","mode:name","engine:name","dyno:name","time:name","channels:name"],
+					orthogonal: "export",
+					format: {
+						 header : function ( data, columnIdx ) {
+							 if ( data === "Channels" ) {
+								 return channelsCsvHeader();
+							 } else {
+								return Config.csv.header[data]; 
+							 }
+						 }
+					 }
+				},
+				customize: function (csv) {
+					return csv.replace(/\"/g, '');
+				}
 			} ,
-			{ text: 'Import CSV' }
+			{ text: "Import CSV" }
 		],
 		autoFill:{
-			columns: [3,4,5,6] 
+			columns: ["dyno:name","engine:name","time:name","active:name"] 
 		} 
 	});
 
+	function channelsCsvValue(opId) {
+		var line = [];
+		$("#chnDataTable").DataTable().rows().data().each( function ( data, index ) {
+			line.push([data.chnSetValues.value(opId),data.chnTrigger].join(Config.csv.valueSeparator));
+		});
+
+		return line.join(Config.csv.fieldSeparator);
+	}
+
+	function channelsCsvHeader() {
+		var header = [];
+		$("#chnDataTable").DataTable().rows().data().each( function ( data, index ) {
+			header.push([data.chnLabel, data.chnType].join(Config.csv.valueSeparator));
+		});
+		return header.join(Config.csv.fieldSeparator);
+	}
+
 	//************************************* datatable event handlers **********************************************
-	t1.on( 'order.dt', function () {
-		t1.column(1, { order:'applied'}).nodes().each( function (cell, i) { cell.innerHTML = i; } );
+	t1.on( "order.dt", function () {
+		t1.column(1, { order:"applied"}).nodes().each( function (cell, i) { cell.innerHTML = i; } );
 	} ).draw();
 
-	t1.on( 'draw', function (e, settings) {
+	t1.on( "draw", function (e, settings) {
 		var data = selectRowToDraw(targetMode); 
 		chart.draw(data);
 	} );
 
-	t1.on( 'select deselect', function (e,dt,type,index) {
+	t1.on( "select deselect", function (e,dt,type,index) {
 		selectHandler( dt, index, e.type ) 
 		// we need to re-render '#chnDataTable' to update the polyvalency attribute
-		t2.rows().invalidate('data').draw('false');
+		t2.rows().invalidate("data").draw("false");
 	} ).draw();
 
-	t2.on( 'select deselect', function (e,dt,type,index) {
+	t2.on( "select deselect", function (e,dt,type,index) {
 		toggleDataTable_EditRemoveBtn(dt) ;
 		toggleChnDataTable_NewBtn() ;
 	} );
 
-	t2.on( 'draw', function (e, settings) {
+	t2.on( "draw", function (e, settings) {
 		//var idSet = $('#opDataTable').DataTable().rows('.selected').ids().toArray();
 		//var channel = $('#chnDataTable').DataTable().row(0).data();
 		//var values = getChnValuesFromSelection( idSet , channel ) ;
@@ -219,11 +260,11 @@ $(document).ready(function() {
 
 	//************************************* jQuery event handlers **********************************************
 	//Todo: bugfix when using global select the chart is not refresh
-	$('#opDataTable_wrapper').on( 'click' ,'th.select-checkbox',  function () {
-			var dt=$('#opDataTable').DataTable();
+	$("#opDataTable_wrapper").on( "click" ,"th.select-checkbox",  function () {
+			var dt=$("#opDataTable").DataTable();
 
 			// toggle select status for all rows	
-			if (dt.rows('.selected').count() > 0) {
+			if (dt.rows(".selected").count() > 0) {
 				dt.rows().deselect().draw();
 			} else { 
 				dt.rows().select().draw();
@@ -231,17 +272,17 @@ $(document).ready(function() {
 	});
 
 	// toggle Activ cell value on click
-	$('#opDataTable tbody').on( 'click', 'td.active-control' , function () {
-			var tr = $(this).closest('tr');
+	$("#opDataTable tbody").on( "click", "td.active-control" , function () {
+			var tr = $(this).closest("tr");
 			var tr_idx = tr.index();
 			var d = t1.row(tr_idx).data();
 
 			if ( d["opActive"] === 0 ){
 				d["opActive"] = 1;
-				tr.removeClass( 'ban');
+				tr.removeClass( "ban");
 			}else{
 				d["opActive"] = 0;
-				tr.addClass( 'ban');
+				tr.addClass( "ban");
 			}
 
 			t1.row(tr_idx).data(d).draw();
@@ -251,35 +292,35 @@ $(document).ready(function() {
 	/*TODO: triggered when a new label is selected
 	  		should be use in order to autocomplete the form
 	*/
-	$(document).on('change', '#chnLabel', function(e) {
-			console.log("chocote");
+	$(document).on("change", "#chnLabel", function(e) {
+		console.log("chocote");
 	});
 
 	//clean dynamic element from modal DOM object
-	$('#formModal').on('hidden.bs.modal', function(e) {
-			$('#formModal .contextualItems').remove();
+	$("#formModal").on("hidden.bs.modal", function(e) {
+		$("#formModal .contextualItems").remove();
 	});
 
 	//wizard handler
-	$(document).on('submit', '#form-wizard', function(e) {
-			var rows = [];
-			var data = [];
-			var m=$('#form-wizard');
+	$(document).on("submit", "#form-wizard", function(e) {
+		var rows = [];
+		var data = [];
+		var m=$("#form-wizard");
 
-			var f = $('#form-wizard').serializeArray().reduce(function(obj,item) {
-				obj[item.name] = item.value;
-				return obj;
-				} , {} );
+		var f = $("#form-wizard").serializeArray().reduce(function(obj,item) {
+			obj[item.name] = item.value;
+			return obj;
+		} , {} );
 
-			e.preventDefault();
-			data = wizard.data(f);
+		e.preventDefault();
+		data = wizard.data(f);
 
-			rows = data.compute(f.direction);
+		rows = data.compute(f.direction);
 			
-			t1.clear();
-			t1.rows.add(rows).draw();
-			t1.row(0).select();
-			$('#formModal').modal('hide');
+		t1.clear();
+		t1.rows.add(rows).draw();
+		t1.row(0).select();
+		$("#formModal").modal("hide");
 	});
 
 	//new row, save modal handler
@@ -287,12 +328,12 @@ $(document).ready(function() {
 		* make this function more dynamiaue by using only the attribute id without the use of a classname
 		* dynamically retrieve the available datatable id ( if possible )
 	*/
-	$(document).on('click','#ListModify', function(e) {
+	$(document).on("click","#ListModify", function(e) {
 		//check who triggered the click event
-		var button = document.getElementById('ListModify'); 
-		var table_id = '#'+button.dataset.tableid;
+		var button = document.getElementById("ListModify"); 
+		var table_id = "#"+button.dataset.tableid;
 		var recipient = button.dataset.btntype;
-		var allowedBtn = [ 'Edit', 'New'] ;
+		var allowedBtn = [ "Edit", "New"] ;
 
 		//if it's not the chnEdit-btn or chnNew-btn just let a message in console.log but leave
 		if( $.inArray(recipient, allowedBtn) === -1 )
@@ -301,8 +342,8 @@ $(document).ready(function() {
 		var dt = $(table_id).DataTable();
 		var inputObj = {};
 
-		$('#formModal *').filter('.dataTableAutoImport').each( function(i) {
-			inputObj[$(this).attr('id')]= $(this).val() ;
+		$("#formModal *").filter(".dataTableAutoImport").each( function(i) {
+			inputObj[$(this).attr("id")]= $(this).val() ;
 		});
 		
 		inputObj.source = table_id;	
@@ -315,7 +356,7 @@ $(document).ready(function() {
 		var set = {};
 		if (inputObj.source === '#chnDataTable') {
 			set.value = inputObj.chnValue;
-			set.targets = new Set ($('#opDataTable').DataTable().rows('.selected').ids().toArray());
+			set.targets = new Set ($("#opDataTable").DataTable().rows(".selected").ids().toArray());
 		}
 
 		//some times we will add a new row, in other case we will edit the existing row	
@@ -327,7 +368,7 @@ $(document).ready(function() {
 				inputObj.opActive =  1 ;
 				inputObj.opSelected = 0 ;
 			}
-			if ( inputObj.source === '#chnDataTable' ) {
+			if ( inputObj.source === "#chnDataTable" ) {
 				// we also supposed the unicity of the setvalues !!must be checked by the form input
 				inputObj.chnSetValues = Channel().create();
 				inputObj.chnSetValues.add(set.value, set.targets);
@@ -336,7 +377,7 @@ $(document).ready(function() {
 		} else { 
 			//we can use indexes as we're supposed to have only on row selected
 			//make sure it is always the case other wise it is a bug
-			var idx=dt.rows('.selected').indexes();
+			var idx=dt.rows(".selected").indexes();
 			if ( inputObj.source === "#opDataTable" ) {
 				inputObj.opId = dt.row(idx).id();
 				inputObj.opActive = dt.row(idx).data().opActive;
@@ -345,13 +386,13 @@ $(document).ready(function() {
 			
 			// no intersection allowed between the current selection and
 			// all other chnTargets
-			if ( inputObj.source = '#chnDataTable' ) {
+			if ( inputObj.source = "#chnDataTable" ) {
 				inputObj.chnSetValues = dt.row(idx).data().chnSetValues;
 				inputObj.chnSetValues.add(set.value, set.targets);
 			}
 			dt.row(idx).data(inputObj).draw();
 		}
-		$('#formModal').modal('hide'); 
+		$("#formModal").modal("hide"); 
 	});
 
 	//************************************* datatable common logic **********************************************

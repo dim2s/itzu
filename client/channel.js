@@ -9,7 +9,8 @@ var Channel = function() {
 		filter: __filter__,
 		indexOf: __indexOf__,
 		status: __status__,
-		deleteId: __deleteId__
+		deleteId: __deleteId__,
+		value : __value__
 	};
 
 	function __merge__(value /*:mixed*/) {
@@ -111,6 +112,20 @@ var Channel = function() {
 
 		return this;
 	}
+
+	function __value__(id) {
+		let r = this.default;
+
+		for ( let i = 0; i < this.db.length ; i++ ) {
+			if ( this.db[i].targets.has(id) ) {
+				r = this.db[i].value ;
+				break;
+			}
+		}
+
+		return r ? r : Config.csv.defaultValue;
+	}
+
 	function __create__ () {
 		return Object.create( channel );
 	}

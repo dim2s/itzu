@@ -201,14 +201,14 @@ $(document).ready(function() {
 				extend: "csvHtml5",
 				fieldSeparator: Config.csv.fieldSeparator,
 				exportOptions: { 
-					columns: ["activ:name","mode:name","engine:name","dyno:name","time:name","channels:name"],
+					columns: ["active:name","mode:name","engine:name","dyno:name","time:name","channels:name"],
 					orthogonal: "export",
 					format: {
 						header : function ( data, columnIdx ) {
 							if ( data === "Channels" ) {
 								return channelsCsvHeader();
 							} else {
-								return Config.csv.header[data]; 
+								return Config.csv.header[data].label; 
 							}
 						}
 					}
@@ -416,24 +416,53 @@ $(document).ready(function() {
 		var file = this.files[0];
 		var reader = new FileReader();
 		var lines = [];
+		var opList = [];
+		var dict_header = {};
+		var dict_mode = {};
+	
+		for ( k in Config.csv.header ) {
+			dict_header[ Config.csv.header[k].label ] = Config.csv.header[k].data;
+		}
 
+		for ( k in Config.csv.mode ) {
+			dict_mode[ Config.csv.mode[k] ] = k;
+		}
 		reader.onload = function( event ) {
 			lines = event.target.result.split(/\r\n|\r|\n/g);
+			// lines 1: header => init the parser
+			let header = lines[0].split(Config.csv.fieldSeparator);
+			for(let i=1 ; i < lines.length ; i ++ ) {
+				let obj = {};
+				let line = lines[i].split(Config.csv.fieldSeparator);
+				for ( let j=0 ; j < header.length ; j++ ){
+					obj[ dict_header[header[j]] ] = line[j] ;
+				}
+				obj.opMode = dict_mode[obj.opMode];
+				obj.opId = getNewId();
+				opList.push(obj);	
+			}
+			// lines n: operating point lines
 		};
 
 		reader.onloadend = function ( event ) {
 			if ( event.target.readyState == FileReader.DONE ) {
-				$("#formModal").find(".modal-body").append("<hr><div class='file-selector-info contextualItem'>");
-				$(".file-selector-info").append("<div class='alert alert-success contextualItem'>");
+				$("#formModal").find(".modal-body").append("<div class='file-selector-info contextualItems'>");
+				$(".file-selector-info").append("<hr>");
+				$(".file-selector-info").append("<div class='alert alert-success contextualItems'>");
 				$(".alert-success").append( "<strong>Success!</strong></br>" );
 				$(".alert-success").append( "file name: " + file.name + "</br>" );
 				$(".alert-success").append( "file size: " + (file.size/1024).toFixed(1) + " KByte </br>" );
 				$(".alert-success").append( "lines: " + lines.length + "</br>" );
 			}
 		};
+		
 
 		reader.readAsText(file);
-		// $("#formModal").modal("hide"); 
+		
+		$(document).on("click","#btn-importCsv", function(e) {
+			$("#opDataTable").DataTable().rows.add(opList).draw();
+			$("#formModal").modal("hide"); 
+		});
 	});
 	//************************************* datatable common logic **********************************************
 	if (t1.rows().count() === 0)
@@ -557,7 +586,7 @@ $(document).ready(function() {
 		m.find(".modal-title").text(b.text());
 		m.find(".modal-body").append(str);
 		m.find(".modal-footer").append(
-			"<input type='submit' class='btn btn-primary contextualItems' id='btn-importCsv' value='Save' form='form-wizard'>"
+			"<input type='submit' class='btn btn-primary contextualItems' id='btn-importCsv' value='Save' form='form-importCSV'>"
 		);
 		return m;
 	}

@@ -1,11 +1,11 @@
 var Config = {
 	csv : {
 		header : {
-			"Engine"	:"TST_ENGINE_TARGET",
-			"Dyno"		:"TST_DYNO_TARGET",
-			"Mode"		:"TST_CMOD",
-			"Activ"		:"TST_ACTIV_OP",
-			"Time"		:"TST_SSQ_LENGHT"
+			"Engine"	:{ label : "TST_ENGINE_TARGET", data:"opEngine"},
+			"Dyno"		:{ label : "TST_DYNO_TARGET",	data: "opDyno" },
+			"Mode"		:{ label : "TST_CMOD",		data: "opMode" },
+			"Activ"		:{ label : "TST_ACTIV_OP",	data: "opActive"},
+			"Time"		:{ label : "TST_SSQ_LENGHT",	data: "opTime" }
 		},
 		trigger : {
 			"Before": 0,

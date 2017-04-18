@@ -3,7 +3,7 @@
 	child row with additional info: unit, description, etc..
 	hidden column unit, description, type, targetsRow
 	a2l,puma NN list convertion to json
-	csv import/export
+	csv import
 	form validation (required value, range, uniqness)
 	onreload page confirmation before loosing data
 	group row by type ( channel tab uniquement )
@@ -15,6 +15,7 @@
 	handle submit event when save button is pressed :
 	for now I'm not able to catch it using JQuery
 	the usage of <input type="submit" make the page reload => data loss
+	templating on client side (mustach,js?)
 */
 $(document).ready(function() {
 
@@ -216,7 +217,12 @@ $(document).ready(function() {
 					return csv.replace(/\"/g, "");
 				}
 			} ,
-			{ text: "Import CSV" }
+			{ 
+				text: "Import CSV",
+				action:	function(event, dt, button, config) {
+					importCsvFormCreate(button,str_importCsvModal).modal("show");
+				}
+			}
 		],
 		autoFill:{
 			columns: ["dyno:name","engine:name","time:name","active:name"] 
@@ -269,6 +275,8 @@ $(document).ready(function() {
 
 	//************************************* jQuery event handlers **********************************************
 	//Todo: bugfix when using global select the chart is not refresh
+	
+
 	$("#opDataTable_wrapper").on( "click" ,"th.select-checkbox",  function () {
 		var dt=$("#opDataTable").DataTable();
 
@@ -403,6 +411,30 @@ $(document).ready(function() {
 		$("#formModal").modal("hide"); 
 	});
 
+	// handler for csv file import
+	$(document).on("change","#csv-file-selector", function(e) {
+		var file = this.files[0];
+		var reader = new FileReader();
+		var lines = [];
+
+		reader.onload = function( event ) {
+			lines = event.target.result.split(/\r\n|\r|\n/g);
+		};
+
+		reader.onloadend = function ( event ) {
+			if ( event.target.readyState == FileReader.DONE ) {
+				$("#formModal").find(".modal-body").append("<hr><div class='file-selector-info contextualItem'>");
+				$(".file-selector-info").append("<div class='alert alert-success contextualItem'>");
+				$(".alert-success").append( "<strong>Success!</strong></br>" );
+				$(".alert-success").append( "file name: " + file.name + "</br>" );
+				$(".alert-success").append( "file size: " + (file.size/1024).toFixed(1) + " KByte </br>" );
+				$(".alert-success").append( "lines: " + lines.length + "</br>" );
+			}
+		};
+
+		reader.readAsText(file);
+		// $("#formModal").modal("hide"); 
+	});
 	//************************************* datatable common logic **********************************************
 	if (t1.rows().count() === 0)
 		t1.buttons(["remove:name","edit:name"]).disable();
@@ -514,6 +546,18 @@ $(document).ready(function() {
 		m.find(".modal-body").append(str);
 		m.find(".modal-footer").append(
 			"<input type='submit' class='btn btn-primary contextualItems' id='btn-wizard' value='Save' form='form-wizard'>"
+		);
+		return m;
+	}
+
+	function importCsvFormCreate(b,str) {
+		var m = $("#formModal");
+
+		m.find(".contextualItems").remove();
+		m.find(".modal-title").text(b.text());
+		m.find(".modal-body").append(str);
+		m.find(".modal-footer").append(
+			"<input type='submit' class='btn btn-primary contextualItems' id='btn-importCsv' value='Save' form='form-wizard'>"
 		);
 		return m;
 	}

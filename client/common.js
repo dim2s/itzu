@@ -431,10 +431,11 @@ $(document).ready(function() {
 			lines = event.target.result.split(/\r\n|\r|\n/g);
 			// lines 1: header => init the parser
 			let header = lines[0].split(Config.csv.fieldSeparator);
+			let headerLength = Object.keys(Config.csv.header).length;
 			for(let i=1 ; i < lines.length ; i ++ ) {
 				let obj = {};
 				let line = lines[i].split(Config.csv.fieldSeparator);
-				for ( let j=0 ; j < header.length ; j++ ){
+				for ( let j=0 ; j < headerLength /* header.length */ ; j++ ){
 					obj[ dict_header[header[j]] ] = line[j] ;
 				}
 				obj.opMode = dict_mode[obj.opMode];

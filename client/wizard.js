@@ -63,8 +63,8 @@ var wizard = (function (){
 	}
 
 	return {
-		data:	function(obj, descriptor=desc) {
-					desc = descriptor;
+		data:	function(obj, descriptor/* =desc */) {
+					desc = descriptor || desc;
 					control.mode = obj["regulation-mode"];
 					control.time = parseInt(obj["control-time"]);
 

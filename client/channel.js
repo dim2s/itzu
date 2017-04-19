@@ -80,13 +80,14 @@ var Channel = function() {
 		let setB = new Set( targetList );
 		let result = [];
 		let itemsFound = new Set();
-		for ( let rule of this.db ) {
+		this.db.forEach( function(rule) {
+		// for ( let rule of this.db ) {
 			let intersection = setB.intersection( rule.targets );
 			itemsFound = itemsFound.union( intersection );
 			if ( intersection.size > 0 ) {
 				result.push({"value": rule.value, "targets": intersection});
 			}
-		}
+		});
 		
 		// l'intersection des elements qui n'ont pas ete trouve avec les ids de l'objet, ont la valeur par default
 		let itemWithDefaultValue = setB.difference(itemsFound);

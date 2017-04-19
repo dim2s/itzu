@@ -1,7 +1,9 @@
 var a=new Uint32Array(10);
 var counter = 0;
 
-crypto.getRandomValues(a);
+var cryptoObj = window.crypto || window.msCrypto ;
+
+cryptoObj.getRandomValues(a);
 
 seed = a[0];
 

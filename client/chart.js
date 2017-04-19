@@ -151,9 +151,11 @@ var Chart = function () {
 
 	// myInit:
 	// prepare everything in order to be able to draw the chart
-	function myInit(opList=[],t="N/C_BRT_5H") {
+	function myInit( list, graphType ) {
 
 		var chartWrapper = null;
+		var opList = list || [];
+		var t = graphType || "N/C_BRT_5H";
 
 		//set the type of graphique & extract required data
 		this.type(t);	

@@ -15,7 +15,7 @@
 	handle submit event when save button is pressed :
 	for now I'm not able to catch it using JQuery
 	the usage of <input type="submit" make the page reload => data loss
-	templating on client side (mustach,js?)
+	templating on client side (mustache.js?)
 */
 $(document).ready(function() {
 
@@ -417,8 +417,14 @@ $(document).ready(function() {
 		var reader = new FileReader();
 		var lines = [];
 		var opList = [];
+		var chnList = {};
 		var dict_header = {};
 		var dict_mode = {};
+		var dict_trigger = {};
+
+		for ( k in Config.csv.trigger ) {
+			dict_trigger[Config.csv.trigger[k]] = k;
+		}
 	
 		for ( k in Config.csv.header ) {
 			dict_header[ Config.csv.header[k].label ] = Config.csv.header[k].data;
@@ -431,18 +437,46 @@ $(document).ready(function() {
 			lines = event.target.result.split(/\r\n|\r|\n/g);
 			// lines 1: header => init the parser
 			let header = lines[0].split(Config.csv.fieldSeparator);
-			let headerLength = Object.keys(Config.csv.header).length;
+			let headerPart1 = Object.keys(Config.csv.header).length;
 			for(let i=1 ; i < lines.length ; i ++ ) {
-				let obj = {};
+				let op = {};
 				let line = lines[i].split(Config.csv.fieldSeparator);
-				for ( let j=0 ; j < headerLength /* header.length */ ; j++ ){
-					obj[ dict_header[header[j]] ] = line[j] ;
+				for ( let j=0 ; j < headerPart1  ; j++ ){
+					op[ dict_header[header[j]] ] = line[j] ;
 				}
-				obj.opMode = dict_mode[obj.opMode];
-				obj.opId = getNewId();
-				opList.push(obj);	
+				op.opMode = dict_mode[op.opMode];
+				op.opId = getNewId().toString();
+				opList.push(op);
+
+				for ( let j= headerPart1 ; j<header.length; j++ ){
+					let label, type, val, trigger, key;
+					[ label , type ] = header[j].split(Config.csv.valueSeparator);
+					[ val, trigger ] = line[j].split(Config.csv.valueSeparator);
+					val = ( val === "*") ? null : val ;
+					key = [label,trigger].join("#");
+
+					if (!(key in chnList)) {
+						var chn = {};
+						chn.chnLabel = label;
+						chn.chnType = type;
+						chn.chnTrigger = dict_trigger[trigger];
+						chn.chnSetValues = Channel().create();
+						chn.chnUnit = "";
+						chn.chnDesc = "";
+						chnList[key] = chn;
+					}
+					chnList[key].chnSetValues.add( val, [op.opId] );
+				}
 			}
 			// lines n: operating point lines
+			for ( key in chnList ) {
+				chnList[key].chnSetValues.db.some( function (rule) {
+					if( rule.targets.size === (lines.length -1 ) ){
+						chnList[key].chnSetValues.default = rule.value;
+						chnList[key].chnSetValues.db.length = 0;
+					}
+				});
+			}
 		};
 
 		reader.onloadend = function ( event ) {
@@ -462,6 +496,12 @@ $(document).ready(function() {
 		
 		$(document).on("click","#btn-importCsv", function(e) {
 			$("#opDataTable").DataTable().rows.add(opList).draw();
+			for ( let key in chnList ) {
+				$("#chnDataTable").DataTable().row.add(chnList[key]);
+			}
+
+			$("#chnDataTable").DataTable().rows().draw();
+
 			$("#formModal").modal("hide"); 
 		});
 	});

@@ -61,3 +61,21 @@ circle[data-active=false] {
 .fixed-panel {
 	max-height: 700;
 }
+
+
+div.dt-autofill-list div.dt-autofill-question input[type=number] {
+	width: 70px;
+}
+
+.glyphicon-ok-circle {
+	color: green;
+}
+
+.glyphicon-ban-circle {
+	color: red;
+}
+
+.glyphicon-ban-circle,.glyphicon-ok-circle {
+	font-size: 15px;
+	cursor: pointer;
+}

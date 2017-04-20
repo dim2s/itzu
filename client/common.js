@@ -3,7 +3,6 @@
 	child row with additional info: unit, description, etc..
 	hidden column unit, description, type, targetsRow
 	a2l,puma NN list convertion to json
-	csv import
 	form validation (required value, range, uniqness)
 	onreload page confirmation before loosing data
 	group row by type ( channel tab uniquement )
@@ -33,7 +32,7 @@ $(document).ready(function() {
 		"select" : { 
 			style: "os", 
 			selector: "td:first-child"
-		}
+		},
 	});
 
 	var t2 = $("#chnDataTable").DataTable({
@@ -42,7 +41,7 @@ $(document).ready(function() {
 			{
 				title:"Label", 
 				targets:1, 
-				className: "chnLabel", 
+				className: "chnLabel dt-body-center dt-head-center", 
 				data: "chnLabel", 
 				render: function (data ,type ,row ,meta ) { 
 					return "<a href='#' data-toggle='popover' data-placement='bottom' data-container='body' data-content='"
@@ -52,7 +51,7 @@ $(document).ready(function() {
 			{
 				title:"Value",
 				targets:2,
-				className: "chnValue",
+				className: "chnValue dt-body-center dt-head-center",
 				data: null, //"chnValue",
 				render: function( data, type, row, meta) {
 					var idSet = $("#opDataTable").DataTable().rows(".selected").ids().toArray();
@@ -76,7 +75,7 @@ $(document).ready(function() {
 					return str; 
 				} 
 			},
-			{title:"Trigger", targets:3, className: "chnTrigger", data: "chnTrigger"},
+			{title:"Trigger", targets:3, className: "chnTrigger dt-body-center dt-head-center", data: "chnTrigger"},
 			{title:"Type", targets:4, className : "chnType", data: "chnType" , name: "chnType", visible: false} ,
 			{title:"Unit", targets:5, className : "chnUnit", data: "chnUnit", visible: false }, 
 			{title:"Desc", targets:6, className : "chnDesc", data: "chnDesc" , visible: false}
@@ -130,35 +129,49 @@ $(document).ready(function() {
 
 // rowReorder seems not to be compatible with select	
 	var t1 = $("#opDataTable").DataTable({
-		//ajax : {
-		//	url :"/opImport.json",
-		//	dataSrc: ''
-		//},
 		rowId: "opId",
 		"columnDefs":[
 			{ orderable: false, targets: "_all"},
 			{ title: "<span id='op-select-all'></span>"     ,  targets:0 , data: null,       className: "select-checkbox",  width: "10px", defaultContent: "" },
-			{ name: "index",	title: "#",		targets:1 , defaultContent: ""},
+			{ name: "index",	title: "#",		targets:1 , defaultContent: "", className: "dt-body-center dt-head-center" },
 			{ 
 				name: "mode",
 				title: "Mode",
 				targets:2,
 				data: "opMode" ,
+				className: "dt-body-center dt-head-center",
 				render: function ( data, type, row) {
 					return type === "export" ?  Config.csv.mode[data] : data;
 				}
 			},
-			{ name: "dyno",		title: "Dyno",		targets:3 , data: "opDyno" ,	},
-			{ name: "engine",	title: "Engine",	targets:4 , data: "opEngine",	},
-			{ name: "time",		title: "Time",		targets:5 , data: "opTime" ,	},
-			{ name: "active",	title: "Activ",		targets:6 , data: "opActive",	 visible: false , defaultContent: "1" },
-			{ name: "state", 	title: "State",		targets:7 , data: null,		className: "active-control", defaultContent: "<i></i>" },
-			{ name: "selected",	title: "Selected",	targets:8 , data: "opSelected",	visible: false , defaultContent: "0" },
-			{ name: "id",		title: "Id",		targets:9 , data: "opId",	visible: false , width: "10px",  },
+			{ name: "dyno",		title: "Dyno",		targets:3 , data: "opDyno" , className: "dt-body-center dt-head-center" },
+			{ name: "engine",	title: "Engine",	targets:4 , data: "opEngine", className: "dt-body-center dt-head-center" },
+			{ name: "time",		title: "Time",		targets:5 , data: "opTime" , className: "dt-body-center dt-head-center" },
+			{ 
+				name: "active",
+				title: "Activ",
+				targets:6 ,
+				data: "opActive",
+				visible: true ,
+				defaultContent: "1",
+				className: "dt-body-center dt-head-center active-control",
+				render: function ( data, type, row) {
+					if ( type === "display") {
+						if ( data == "1" ) { //Todo: apres un import csv la valeur est une string ensuite la valeur est un number. A regarder de pret pour avoir de la constistence. en attendant "==="=> "=="
+							return "<span class='glyphicon glyphicon-ok-circle'></span>";
+						} else if ( data == "0" ) {
+							return "<span class='glyphicon glyphicon-ban-circle'></span>";
+						}
+					}
+					return data;
+				}
+			},
+			{ name: "selected",	title: "Selected",	targets:7 , data: "opSelected",	visible: false , defaultContent: "0" },
+			{ name: "id",		title: "Id",		targets:8 , data: "opId",	visible: false , width: "10px"},
 			{ 
 				name: "channels",
 				title: "Channels",
-				targets:10,
+				targets:9,
 				data: null,
 				visible: false,
 				render: function ( data, type, row) {
@@ -225,7 +238,7 @@ $(document).ready(function() {
 			}
 		],
 		autoFill:{
-			columns: ["dyno:name","engine:name","time:name","active:name"] 
+			columns: ["dyno:name","engine:name","time:name"] 
 		} 
 	});
 
@@ -296,10 +309,8 @@ $(document).ready(function() {
 
 		if ( d["opActive"] === 0 ){
 			d["opActive"] = 1;
-			tr.removeClass( "ban");
 		}else{
 			d["opActive"] = 0;
-			tr.addClass( "ban");
 		}
 
 		t1.row(tr_idx).data(d).draw();
@@ -572,7 +583,7 @@ $(document).ready(function() {
 
 		//toggle the state of the select column value
 		index.forEach( function(i) { 
-			dt.cell(i,8).data( s ) ;
+			dt.cell(i,'selected:name').data( s ) ;
 		});
 
 		var selectedRows = dt.rows(".selected");

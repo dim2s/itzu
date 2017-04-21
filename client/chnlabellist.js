@@ -42,4 +42,18 @@ function loadChnList() {
 	// Set up and make the request.
 	request.open('GET', 'chnlabellist.json', true);
 	request.send();
+
+	//quick Hack to add a2l information
+	var a2l = JSON.parse(localStorage.getItem("a2l"));
+	
+	a2l.list.forEach(function(item) {
+	
+		// Create a new <option> element.
+		var option = document.createElement('option');
+
+		//Set the value using the item in the JSON array.
+		option.value = item.name;
+		// Add the <option> element to the <datalist>.
+		dataList.appendChild(option);
+	});
 };

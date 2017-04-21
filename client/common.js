@@ -4,17 +4,18 @@
 	hidden column unit, description, type, targetsRow
 	a2l,puma NN list convertion to json
 	form validation (required value, range, uniqness)
+	frontend user input validation ( using HTML5 feature like 'required' attribute for form' and JQuery form method )
 	onreload page confirmation before loosing data
 	group row by type ( channel tab uniquement )
 	limit the number of row datalist can show ( or use JQuery flexdatalist plugin )
 	autocomplete unit, description and type base on label selection
-	implement local storage feature
 	when filling form, goes to next input on enter key pressed event
-	frontend user input validation ( using HTML5 feature like 'required' attribute for form' and JQuery form method )
 	handle submit event when save button is pressed :
 	for now I'm not able to catch it using JQuery
 	the usage of <input type="submit" make the page reload => data loss
 	templating on client side (mustache.js?)
+	autodetect the type of file(*.a2l, *.csv) and tel the user for invalid file type
+	write on the UI, the a2l et qty.csv in use ( datatable information ? )
 */
 $(document).ready(function() {
 
@@ -26,7 +27,7 @@ $(document).ready(function() {
 	$.extend( true, $.fn.dataTable.defaults, {
 		"searching": true,
 		"paging": false,
-		"info": false,
+		"info": true,
 		"scrollY": "600px",
 		"scrollCollapse": true,
 		"select" : { 
@@ -120,8 +121,9 @@ $(document).ready(function() {
 			{ 
 				text: "Import A2L",
 				name: "chnImport-btn",
-				action: function(event, dt, button, config) {
-					alert("Import A2l: fonction pas encore implémentée");
+				className: "a2l-import",
+				action:	function(event, dt, button, config) {
+					fileUploadFormCreate(button,str_fileUploadModal).modal("show");
 				}
 			} 
 		]
@@ -157,7 +159,9 @@ $(document).ready(function() {
 				className: "dt-body-center dt-head-center active-control",
 				render: function ( data, type, row) {
 					if ( type === "display") {
-						if ( data == "1" ) { //Todo: apres un import csv la valeur est une string ensuite la valeur est un number. A regarder de pret pour avoir de la constistence. en attendant "==="=> "=="
+						//Todo: apres un import csv la valeur est une string ensuite la valeur est un number.
+						//A regarder de pret pour avoir de la constistence. en attendant "==="=> "=="
+					if ( data == "1" ) { 
 							return "<span class='glyphicon glyphicon-ok-circle'></span>";
 						} else if ( data == "0" ) {
 							return "<span class='glyphicon glyphicon-ban-circle'></span>";
@@ -232,8 +236,9 @@ $(document).ready(function() {
 			} ,
 			{ 
 				text: "Import CSV",
+				className: "csv-import",
 				action:	function(event, dt, button, config) {
-					importCsvFormCreate(button,str_importCsvModal).modal("show");
+					fileUploadFormCreate(button,str_fileUploadModal).modal("show");
 				}
 			}
 		],
@@ -289,7 +294,6 @@ $(document).ready(function() {
 	//************************************* jQuery event handlers **********************************************
 	//Todo: bugfix when using global select the chart is not refresh
 	
-
 	$("#opDataTable_wrapper").on( "click" ,"th.select-checkbox",  function () {
 		var dt=$("#opDataTable").DataTable();
 
@@ -352,7 +356,7 @@ $(document).ready(function() {
 
 	//new row, save modal handler
 	/* ToDo:
-		* make this function more dynamiaue by using only the attribute id without the use of a classname
+		* make this function more dynamique by using only the attribute id without the use of a classname
 		* dynamically retrieve the available datatable id ( if possible )
 	*/
 	$(document).on("click","#ListModify", function(e) {
@@ -422,8 +426,73 @@ $(document).ready(function() {
 		$("#formModal").modal("hide"); 
 	});
 
+	// hander for a2l file import
+	$(document).on("change", "#file-selector.a2l-import", function(e) {
+		var file = this.files[0];
+		var reader = new FileReader();
+		var channelList = [];
+
+		function parseA2l( content ) {
+			var re = /\/begin CHARACTERISTIC([\s\S]*?)\/end CHARACTERISTIC/g;
+			var characteristic;
+			var channel = [];
+			while ((  characteristic = re.exec(content)) !== null) {
+				//console.log("regex match, prochaine correspondance à partir de " + re.lastIndex);
+				parseCharacteristics( characteristic[1] );
+			}
+
+			function parseCharacteristics( buffer ) {
+				var re = /[^\s\n\t]+["\w .%-/]+/g;
+				var token = buffer.match(re);
+				var obj ={};
+
+				obj.name = token[0];
+				obj.type = token[2];
+				obj.desc = token[1];
+				obj.min  = parseFloat(token[7]);
+				obj.max  = parseFloat(token[8]);
+
+				channel.push(obj);
+			}
+
+			return channel;
+		}
+		reader.onload = function( event ) {
+			channelList = parseA2l(event.target.result);
+		};
+
+		reader.onloadend = function ( event ) {
+			if ( event.target.readyState == FileReader.DONE ) {
+				$("#formModal").find(".modal-body").append("<div class='file-selector-info contextualItems'>");
+				$(".file-selector-info").append("<hr>");
+				$(".file-selector-info").append("<div class='alert alert-success contextualItems'>");
+				$(".alert-success").append( "<strong>Success!</strong></br>" );
+				$(".alert-success").append( "file name: " + file.name + "</br>" );
+				$(".alert-success").append( "file size: " + (file.size/1024).toFixed(1) + " KByte </br>" );
+				$(".alert-success").append( "Channels: " + channelList.length + "</br>" );
+			}
+		};
+		
+
+		reader.readAsText(file);
+
+		$(document).on("click","#btn-a2l-import", function(e) {
+			var a2l ={};
+			a2l.list = channelList;
+			a2l.file = file.name;
+			
+			if (typeof(Storage) !== "undefined") {
+				localStorage.setItem("a2l", JSON.stringify(a2l));
+			} else {
+				alert("Sorry! No Web Storage support.. your informations will be lost when you close the browser");
+			}
+
+			$("#formModal").modal("hide"); 
+		});
+	});
+
 	// handler for csv file import
-	$(document).on("change","#csv-file-selector", function(e) {
+	$(document).on("change","#file-selector.csv-import", function(e) {
 		var file = this.files[0];
 		var reader = new FileReader();
 		var lines = [];
@@ -444,6 +513,7 @@ $(document).ready(function() {
 		for ( k in Config.csv.mode ) {
 			dict_mode[ Config.csv.mode[k] ] = k;
 		}
+		
 		reader.onload = function( event ) {
 			lines = event.target.result.split(/\r\n|\r|\n/g);
 			// lines 1: header => init the parser
@@ -505,7 +575,7 @@ $(document).ready(function() {
 
 		reader.readAsText(file);
 		
-		$(document).on("click","#btn-importCsv", function(e) {
+		$(document).on("click","#btn-csv-import", function(e) {
 			$("#opDataTable").DataTable().rows.add(opList).draw();
 			for ( let key in chnList ) {
 				$("#chnDataTable").DataTable().row.add(chnList[key]);
@@ -631,15 +701,24 @@ $(document).ready(function() {
 		return m;
 	}
 
-	function importCsvFormCreate(b,str) {
+	function fileUploadFormCreate(b,str) {
 		var m = $("#formModal");
+		var types = ["csv-import", "a2l-import"];
+		var btnType ="";
+
+		types.some( function(e) { if (b.hasClass(e) ) { btnType = e; } } );
+
+		if (!btnType) {
+			str = "not yet implemented";
+		}
 
 		m.find(".contextualItems").remove();
 		m.find(".modal-title").text(b.text());
 		m.find(".modal-body").append(str);
 		m.find(".modal-footer").append(
-			"<input type='submit' class='btn btn-primary contextualItems' id='btn-importCsv' value='Save' form='form-importCSV'>"
+			"<input type='submit' class='btn btn-primary contextualItems' id='btn-" + btnType + "' value='Save' form='form-"+btnType +"'>"
 		);
+		m.find("#file-selector").addClass(btnType);
 		return m;
 	}
 

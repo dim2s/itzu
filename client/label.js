@@ -1,3 +1,4 @@
+/* global Papa */
 // require("../client/set.js");
 // var Papa = require("babyparse");
 
@@ -9,7 +10,7 @@
 	// each label objec has the following properties: name, description, unit, min, max, type
 	collection.db = [] ;
 	return collection;
-};
+}
 
 const lineSeparator = /\r\n\r|\n/g;
 
@@ -19,10 +20,37 @@ var labelDb = {
 };
 
 // reset de collection
-labelDb.reset = function () {
-	this.files  = null;
-	// this.fileType = null; 
+labelDb.delete = function () {
 	this.db.length = 0;
+	this.files.length  = 0;
+	this.errors.length = 0;
+	this.save();
+	return this;
+};
+
+// load data from data storage, if possible 
+// TODO: better error handling
+//       is it really necessary to save and retrieve errors?
+labelDb.load = function() {
+	if ( typeof(Storage) !== "undefined") {
+		var local = JSON.parse(localStorage.getItem("a2l"));
+		this.db = local.db; 
+		this.files = local.files;
+		this.errors = local.errors;
+	} else {
+		alert("Sorry! No Web Storage support.. your informations will be lost when you close the browser");
+	}
+
+	return this;
+};
+
+// save data in local storage if possible....
+labelDb.save = function() {
+	if (typeof(Storage) !== "undefined") {
+		localStorage.setItem("a2l", JSON.stringify(this));
+	} else {
+		alert("Sorry! No Web Storage support.. your informations will be lost when you close the browser");
+	}
 	return this;
 };
 

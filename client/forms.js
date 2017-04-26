@@ -1,4 +1,4 @@
-/* global Config alert wizard getNewId Channel FileReader localStorage Labels*/
+/* global Config alert wizard getNewId Channel FileReader Labels*/
 /* Note:
  * 1 - element of dataTableAutoImport class must have an id which match exactly the data columns field data field 
  */
@@ -47,6 +47,11 @@ function chFrm( className ) {
 
 function uploadFrm(className) {
 	var t = "<form id='form-modal' class='" + className + "'>";
+	if ( className === Config.frm.lblImport.class )  {
+		t += 	"<div class='form-group contextual-items'>" ;
+		t +=		 "<button type='button' class='btn btn-default' id='delete-labels' >Delete labels</button>";
+		t += 	"</div>";
+	}
 	t += "<label class='btn btn-primary contextual-items' for='file-selector'>" ;
 	t += "<input id='file-selector' class='" + className + "' type='file' style='display:none;' >Select file" ; 
 	t += "</label>";
@@ -167,20 +172,13 @@ function wizardFrm(className) {
 //================================================ Init Functions ============================================================================
 function lblImportInit() {
 	// TODO: tell the user that there is no labels available
-	// var library = JSON.parse(localStorage.getItem("a2l"));
-	var library = Labels();
+	var library = Labels().load();
 	var reader = new FileReader();
 	var file;
 
-
-	// store channelList on localStore
 	$("#form-modal.lbl-import").parsley()
 		.on("form:submit", function() {
-			if (typeof(Storage) !== "undefined") {
-				localStorage.setItem("a2l", JSON.stringify(library));
-			} else {
-				alert("Sorry! No Web Storage support.. your informations will be lost when you close the browser");
-			}
+			library.save();
 			modalFormDestroy();
 			return false;
 		});
@@ -208,6 +206,12 @@ function lblImportInit() {
 
 		reader.readAsText(file);
 	});
+
+	$("#delete-labels").on( "click" , function() {
+		library.delete();
+		alert("all the labels have been deleted!!!");
+	});
+
 }
 
 function csvImportInit() {
@@ -331,7 +335,7 @@ function chFrmInit() {
 	var dt = $("#chnDataTable").DataTable();
 	var rowSelected = dt.rows( ".selected" );
 	var idx= rowSelected.indexes();
-	var labelCollection = JSON.parse(localStorage.getItem("a2l"));
+	var labelCollection = Labels().load();
 	var targets = new Set ($("#opDataTable").DataTable().rows(".selected").ids().toArray());
 
 	$("#chnLabel").flexdatalist({

@@ -3,17 +3,10 @@
 	child row with additional info: unit, description, etc..
 	hidden column unit, description, type, targetsRow
 	a2l,puma NN list convertion to json
-	form validation (required value, range, uniqness)
-	frontend user input validation ( using HTML5 feature like 'required' attribute for form' and JQuery form method )
 	onreload page confirmation before loosing data
 	group row by type ( channel tab uniquement )
 	limit the number of row datalist can show ( or use JQuery flexdatalist plugin )
 	autocomplete unit, description and type base on label selection
-	when filling form, goes to next input on enter key pressed event
-	handle submit event when save button is pressed :
-	for now I'm not able to catch it using JQuery
-	the usage of <input type="submit" make the page reload => data loss
-	templating on client side (mustache.js?)
 	autodetect the type of file(*.a2l, *.csv) and tel the user for invalid file type
 	write on the UI, the a2l et qty.csv in use ( datatable information ? )
 */
@@ -82,13 +75,15 @@ $(document).ready(function() {
 			{title:"Desc", targets:6, className : "chnDesc", data: "chnDesc" , visible: false}
 
 		],
-		dom: "<'#chnToolbar'>Brtip",
+		dom: "<'#chnToolbar'>Britp",
 		buttons: [ // ** do not change the name attribute **
 			{ 
-				text:"New",
-				name: "new",
-				action: function(event,dt,button, config ) {
-					rowEditFormCreate(button,str_chnModal,dt.table().node().id).modal("show");
+				text: Config.frm.newCh.label ,
+				name: "new" ,
+				className: Config.frm.newCh.class, 
+				action:	function(event, dt, button, config) {
+					// rowEditFormCreate(button,str_chnModal,dt.table().node().id).modal("show");
+					modalFormCreate( button.text() );
 				}
 			},
 			{ 
@@ -99,11 +94,13 @@ $(document).ready(function() {
 				}
 			},
 			{ 
-				text:"Edit",
-				name: "edit",
+				text: Config.frm.editCh.label ,
+				name: 	"edit",
+				className: Config.frm.editCh.class,
 				state:false,
 				action: function(event,dt,button,config) {
-					editRow(event,dt,button,str_chnModal);
+					modalFormCreate( button.text() );
+					// editRow(event,dt,button,str_chnModal);
 				}
 			},
 			{ 
@@ -119,11 +116,12 @@ $(document).ready(function() {
 				}
 			},
 			{ 
-				text: "Import A2L",
+				text: Config.frm.a2lImport.label ,
 				name: "chnImport-btn",
-				className: "a2l-import",
+				className: Config.frm.a2lImport.class,
 				action:	function(event, dt, button, config) {
-					fileUploadFormCreate(button,str_fileUploadModal).modal("show");
+					// fileUploadFormCreate(button,str_fileUploadModal).modal("show");
+					modalFormCreate( button.text() );
 				}
 			} 
 		]
@@ -143,7 +141,13 @@ $(document).ready(function() {
 				data: "opMode" ,
 				className: "dt-body-center dt-head-center",
 				render: function ( data, type, row) {
-					return type === "export" ?  Config.csv.mode[data] : data;
+					
+					if (type === "display") {
+						return reverseMode[data];
+					}
+					
+					return data 
+					// return type === "export" ?  Config.csv.mode[data] : data;
 				}
 			},
 			{ name: "dyno",		title: "Dyno",		targets:3 , data: "opDyno" , className: "dt-body-center dt-head-center" },
@@ -155,7 +159,7 @@ $(document).ready(function() {
 				targets:6 ,
 				data: "opActive",
 				visible: true ,
-				defaultContent: "1",
+				defaultContent: Config.defaultContent.opActive,
 				className: "dt-body-center dt-head-center active-control",
 				render: function ( data, type, row) {
 					if ( type === "display") {
@@ -170,8 +174,22 @@ $(document).ready(function() {
 					return data;
 				}
 			},
-			{ name: "selected",	title: "Selected",	targets:7 , data: "opSelected",	visible: false , defaultContent: "0" },
-			{ name: "id",		title: "Id",		targets:8 , data: "opId",	visible: false , width: "10px"},
+			{
+				name: "selected",
+				title: "Selected",
+				targets:7,
+				data: "opSelected",
+				visible: false ,
+				defaultContent: Config.defaultContent.opSelected 
+			},
+			{
+				name: "id",
+				title: "Id",
+				targets:8 ,
+				data: "opId",
+				visible: false ,
+				width: "10px"
+			},
 			{ 
 				name: "channels",
 				title: "Channels",
@@ -183,13 +201,14 @@ $(document).ready(function() {
 				}
 			},
 		],
-		dom: "<'#opToolbar'>Brtip",
+		dom: "<'#opToolbar'>Britp",
 		buttons: [
 			{ 
-				text: "New" ,
-				name: "new",
+				text: Config.frm.newOp.label ,
+				name: Config.frm.newOp.class,
+				className: "new", 
 				action:	function(event,dt,button, config ) {
-					rowEditFormCreate(button,str_opModal,dt.table().node().id).modal("show");
+					modalFormCreate( button.text() );
 				}
 			},
 			{
@@ -201,16 +220,19 @@ $(document).ready(function() {
 				}
 			},
 			{
-				text: "Edit",
-				name: "edit",
+				text: Config.frm.editOp.label,
+				name: Config.frm.editOp.class,
+				className: "edit",
 				action: function(event,dt,button,config) {
-					editRow(event,dt,button,str_opModal);
+					modalFormCreate( button.text() );
 				}
 			},
 			{ 
-				text: "Wizard" ,
+				text: Config.frm.wizard.label ,
+				name: Config.frm.wizard.class,
+				className : Config.frm.wizard.class,
 				action:	function(event, dt, button, config) {
-					wizardFormCreate(button,str_wizardModal,dt.table().node().id).modal("show");
+					modalFormCreate( button.text() );
 				}
 			},
 			{ 
@@ -235,10 +257,12 @@ $(document).ready(function() {
 				}
 			} ,
 			{ 
-				text: "Import CSV",
-				className: "csv-import",
+				text: Config.frm.csvImport.label,
+				name: Config.frm.csvImport.class,
+				className: Config.frm.csvImport.class,
 				action:	function(event, dt, button, config) {
-					fileUploadFormCreate(button,str_fileUploadModal).modal("show");
+					// fileUploadFormCreate(button,str_fileUploadModal).modal("show");
+					modalFormCreate( button.text() );
 				}
 			}
 		],
@@ -333,27 +357,6 @@ $(document).ready(function() {
 		$("#formModal .contextualItems").remove();
 	});
 
-	//wizard handler
-	$(document).on("submit", "#form-wizard", function(e) {
-		var rows = [];
-		var data = [];
-
-		var f = $("#form-wizard").serializeArray().reduce(function(obj,item) {
-			obj[item.name] = item.value;
-			return obj;
-		} , {} );
-
-		e.preventDefault();
-		data = wizard.data(f);
-
-		rows = data.compute(f.direction);
-			
-		t1.clear();
-		t1.rows.add(rows).draw();
-		t1.row(0).select();
-		$("#formModal").modal("hide");
-	});
-
 	//new row, save modal handler
 	/* ToDo:
 		* make this function more dynamique by using only the attribute id without the use of a classname
@@ -377,7 +380,7 @@ $(document).ready(function() {
 			inputObj[$(this).attr("id")]= $(this).val() ;
 		});
 		
-		inputObj.source = table_id;	
+		inputObj.source = table_id;
 		// todo:
 		//	*retrieve the value of the default content automaticaly
 		//	*defferentiate inputObj op vs chn
@@ -428,167 +431,73 @@ $(document).ready(function() {
 
 	// hander for a2l file import
 	$(document).on("change", "#file-selector.a2l-import", function(e) {
-		var file = this.files[0];
-		var reader = new FileReader();
-		var channelList = [];
-
-		function parseA2l( content ) {
-			var re = /\/begin CHARACTERISTIC([\s\S]*?)\/end CHARACTERISTIC/g;
-			var characteristic;
-			var channel = [];
-			while ((  characteristic = re.exec(content)) !== null) {
-				//console.log("regex match, prochaine correspondance à partir de " + re.lastIndex);
-				parseCharacteristics( characteristic[1] );
-			}
-
-			function parseCharacteristics( buffer ) {
-				var re = /[^\s\n\t]+["\w .%-/]+/g;
-				var token = buffer.match(re);
-				var obj ={};
-
-				obj.name = token[0];
-				obj.type = token[2];
-				obj.desc = token[1];
-				obj.min  = parseFloat(token[7]);
-				obj.max  = parseFloat(token[8]);
-
-				channel.push(obj);
-			}
-
-			return channel;
-		}
-		reader.onload = function( event ) {
-			channelList = parseA2l(event.target.result);
-		};
-
-		reader.onloadend = function ( event ) {
-			if ( event.target.readyState == FileReader.DONE ) {
-				$("#formModal").find(".modal-body").append("<div class='file-selector-info contextualItems'>");
-				$(".file-selector-info").append("<hr>");
-				$(".file-selector-info").append("<div class='alert alert-success contextualItems'>");
-				$(".alert-success").append( "<strong>Success!</strong></br>" );
-				$(".alert-success").append( "file name: " + file.name + "</br>" );
-				$(".alert-success").append( "file size: " + (file.size/1024).toFixed(1) + " KByte </br>" );
-				$(".alert-success").append( "Channels: " + channelList.length + "</br>" );
-			}
-		};
-		
-
-		reader.readAsText(file);
-
-		$(document).on("click","#btn-a2l-import", function(e) {
-			var a2l ={};
-			a2l.list = channelList;
-			a2l.file = file.name;
-			
-			if (typeof(Storage) !== "undefined") {
-				localStorage.setItem("a2l", JSON.stringify(a2l));
-			} else {
-				alert("Sorry! No Web Storage support.. your informations will be lost when you close the browser");
-			}
-
-			$("#formModal").modal("hide"); 
-		});
+		// var file = this.files[0];
+		// var reader = new FileReader();
+		// var channelList = [];
+                //
+		// function parseA2l( content ) {
+		// 	var re = /\/begin CHARACTERISTIC([\s\S]*?)\/end CHARACTERISTIC/g;
+		// 	var characteristic;
+		// 	var channel = [];
+		// 	while ((  characteristic = re.exec(content)) !== null) {
+		// 		//console.log("regex match, prochaine correspondance à partir de " + re.lastIndex);
+		// 		parseCharacteristics( characteristic[1] );
+		// 	}
+                //
+		// 	function parseCharacteristics( buffer ) {
+		// 		var re = /[^\s\n\t]+["\w .%-/]+/g;
+		// 		var token = buffer.match(re);
+		// 		var obj ={};
+                //
+		// 		obj.name = token[0];
+		// 		obj.type = token[2];
+		// 		obj.desc = token[1];
+		// 		obj.min  = parseFloat(token[7]);
+		// 		obj.max  = parseFloat(token[8]);
+                //
+		// 		channel.push(obj);
+		// 	}
+                //
+		// 	return channel;
+		// }
+		// reader.onload = function( event ) {
+		// 	channelList = parseA2l(event.target.result);
+		// };
+                //
+		// reader.onloadend = function ( event ) {
+		// 	if ( event.target.readyState == FileReader.DONE ) {
+		// 		$("#formModal").find(".modal-body").append("<div class='file-selector-info contextualItems'>");
+		// 		$(".file-selector-info").append("<hr>");
+		// 		$(".file-selector-info").append("<div class='alert alert-success contextualItems'>");
+		// 		$(".alert-success").append( "<strong>Success!</strong></br>" );
+		// 		$(".alert-success").append( "file name: " + file.name + "</br>" );
+		// 		$(".alert-success").append( "file size: " + (file.size/1024).toFixed(1) + " KByte </br>" );
+		// 		$(".alert-success").append( "Channels: " + channelList.length + "</br>" );
+		// 	}
+		// };
+		//
+                //
+		// reader.readAsText(file);
+                //
+		// $(document).on("click","#btn-a2l-import", function(e) {
+		// 	var a2l ={};
+		// 	a2l.list = channelList;
+		// 	a2l.file = file.name;
+		// 	
+		// 	if (typeof(Storage) !== "undefined") {
+		// 		localStorage.setItem("a2l", JSON.stringify(a2l));
+		// 	} else {
+		// 		alert("Sorry! No Web Storage support.. your informations will be lost when you close the browser");
+		// 	}
+                //
+		// 	$("#formModal").modal("hide"); 
+		// });
 	});
 
 	// handler for csv file import
-	$(document).on("change","#file-selector.csv-import", function(e) {
-		var file = this.files[0];
-		var reader = new FileReader();
-		var lines = [];
-		var opList = [];
-		var chnList = {};
-		var dict_header = {};
-		var dict_mode = {};
-		var dict_trigger = {};
-
-		for ( k in Config.csv.trigger ) {
-			dict_trigger[Config.csv.trigger[k]] = k;
-		}
-	
-		for ( k in Config.csv.header ) {
-			dict_header[ Config.csv.header[k].label ] = Config.csv.header[k].data;
-		}
-
-		for ( k in Config.csv.mode ) {
-			dict_mode[ Config.csv.mode[k] ] = k;
-		}
-		
-		reader.onload = function( event ) {
-			lines = event.target.result.split(/\r\n|\r|\n/g);
-			// lines 1: header => init the parser
-			let header = lines[0].split(Config.csv.fieldSeparator);
-			let headerPart1 = Object.keys(Config.csv.header).length;
-			for(let i=1 ; i < lines.length ; i ++ ) {
-				let op = {};
-				let line = lines[i].split(Config.csv.fieldSeparator);
-				for ( let j=0 ; j < headerPart1  ; j++ ){
-					op[ dict_header[header[j]] ] = line[j] ;
-				}
-				op.opMode = dict_mode[op.opMode];
-				op.opId = getNewId().toString();
-				opList.push(op);
-
-				for ( let j= headerPart1 ; j<header.length; j++ ){
-					let label, type, val, trigger, key;
-					[ label , type ] = header[j].split(Config.csv.valueSeparator);
-					[ val, trigger ] = line[j].split(Config.csv.valueSeparator);
-					val = ( val === "*") ? null : val ;
-					key = [label,trigger].join("#");
-
-					if (!(key in chnList)) {
-						var chn = {};
-						chn.chnLabel = label;
-						chn.chnType = type;
-						chn.chnTrigger = dict_trigger[trigger];
-						chn.chnSetValues = Channel().create();
-						chn.chnUnit = "";
-						chn.chnDesc = "";
-						chnList[key] = chn;
-					}
-					chnList[key].chnSetValues.add( val, [op.opId] );
-				}
-			}
-			// lines n: operating point lines
-			for ( key in chnList ) {
-				chnList[key].chnSetValues.db.some( function (rule) {
-					if( rule.targets.size === (lines.length -1 ) ){
-						chnList[key].chnSetValues.default = rule.value;
-						chnList[key].chnSetValues.db.length = 0;
-					}
-				});
-			}
-		};
-
-		reader.onloadend = function ( event ) {
-			if ( event.target.readyState == FileReader.DONE ) {
-				$("#formModal").find(".modal-body").append("<div class='file-selector-info contextualItems'>");
-				$(".file-selector-info").append("<hr>");
-				$(".file-selector-info").append("<div class='alert alert-success contextualItems'>");
-				$(".alert-success").append( "<strong>Success!</strong></br>" );
-				$(".alert-success").append( "file name: " + file.name + "</br>" );
-				$(".alert-success").append( "file size: " + (file.size/1024).toFixed(1) + " KByte </br>" );
-				$(".alert-success").append( "lines: " + lines.length + "</br>" );
-			}
-		};
-		
-
-		reader.readAsText(file);
-		
-		$(document).on("click","#btn-csv-import", function(e) {
-			$("#opDataTable").DataTable().rows.add(opList).draw();
-			for ( let key in chnList ) {
-				$("#chnDataTable").DataTable().row.add(chnList[key]);
-			}
-
-			$("#chnDataTable").DataTable().rows().draw();
-
-			$("#formModal").modal("hide"); 
-		});
-	});
 	//************************************* datatable common logic **********************************************
 	if (t1.rows().count() === 0)
-		t1.buttons(["remove:name","edit:name"]).disable();
+		t1.buttons(["remove:name", Config.frm.editOp.class + ":name"]).disable();
 
 	t2.buttons(["new:name","edit:name","remove:name","mergeAll:name"]).disable();
 
@@ -660,7 +569,7 @@ $(document).ready(function() {
 		if (selectedRows.count() > 0 ) {
 			targetMode = selectedRows.data()[0].opMode;
 			var data = selectRowToDraw(targetMode); 
-			chart.init( data, targetMode );	
+			chart.init( data, reverseMode[targetMode] );	
 			chart.draw(data);
 		}
 	}
@@ -686,18 +595,6 @@ $(document).ready(function() {
 		if ( dt_id === "chnDataTable" )
 			loadChnList();
 
-		return m;
-	}
-
-	function wizardFormCreate(b,str,dt_id) {
-		var m = $("#formModal");
-
-		m.find(".contextualItems").remove();
-		m.find(".modal-title").text(b.text());
-		m.find(".modal-body").append(str);
-		m.find(".modal-footer").append(
-			"<input type='submit' class='btn btn-primary contextualItems' id='btn-wizard' value='Save' form='form-wizard'>"
-		);
 		return m;
 	}
 

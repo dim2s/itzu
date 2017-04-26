@@ -1,3 +1,4 @@
+// do not work very well if all the inputs are zero ( freeze chrome )
 var wizard = (function (){
 	const fixedLength = 1;
 	var engine = {};

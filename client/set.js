@@ -1,5 +1,5 @@
 // add some operation to Set object
-(function extendSet() {
+/* module.exports =  */(function extendSet() {
 	Set.prototype.isSuperset = function(subset) {
 		var that = this;
 		// for (var elem of subset) {

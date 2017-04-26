@@ -1,4 +1,14 @@
 var Config = {
+	frm: {
+		wizard: { label: "Wizard", class: "wizard"  },
+		newOp:  { label: "New"   , class: "new-op"  },
+		editOp: { label: "Edit"  , class: "edit-op" },
+		newCh:  { label: "NewC"   , class: "new-ch"  },
+		editCh: { label: "EditC"  , class: "edit-ch" },
+		csvImport: { label: "Import CSV"  , class: "csv-import" },
+		a2lImport: { label: "Import Labels"  , class: "a2l-import" },
+		qtyImport: { label: "Import Quantities"  , class: "qty-import" }
+	},
 	csv : {
 		header : {
 			"Engine"	:{ label : "TST_ENGINE_TARGET", data:"opEngine"},
@@ -8,29 +18,45 @@ var Config = {
 			"Time"		:{ label : "TST_SSQ_LENGHT",	data: "opTime" }
 		},
 		trigger : {
-			"Before": 0,
-			"After" : 1
+			"Before": { value : 0 },
+			"After" : { value : 1 }
 		},
 		type : {
-			"Map"	: "map_ecu",
-			"Curve"	: "curve_ecu",
-			"Value"	: "param_ecu",
+			"MAP"	: "map_ecu",
+			"CURVE"	: "curve_ecu",
+			"VALUE"	: "param_ecu",
 			"NN"	: "param",
-			"Draft"	: "param" 
+			"DRAFT"	: "param" 
 		},
 		mode : {
-			"IDLE"		:	9,
-			"IDLE_CONTROL"	:	10,
-			"N/ACCEL"	:	8,
-			"N/C_BRT_5H"	:	12,
-			"N/X_VALUE"	:	16,
-			"C_BRT_5H/ACCEL":	11,
-			"C_BRT_5H/N"	:	13,
-			"C_BRT_5H/X_VALUE":	17
+			"IDLE"		:	{ value: 9  , engineRange: [-8000,8000], dynoRange:[-8000,8000] },
+			"IDLE_CONTROL"	:	{ value: 10 , engineRange: [-8000,8000], dynoRange:[-8000,8000] },
+			"N/ACCEL"	:	{ value: 8  , engineRange: [0,150],	 dynoRange: [-8000,8000] },
+			"N/C_BRT_5H"	:	{ value: 12 , engineRange: [0,500],	 dynoRange: [-8000,8000] },
+			"N/X_VALUE"	:	{ value: 16 , engineRange: [-8000,8000], dynoRange: [-8000,8000] },
+			"C_BRT_5H/ACCEL":	{ value: 11 , engineRange: [0,150],	 dynoRange: [0,500] },
+			"C_BRT_5H/N"	:	{ value: 13 , engineRange: [-8000,8000], dynoRange: [0,500] },
+			"C_BRT_5H/X_VALUE":	{ value: 17 , engineRange: [-8000,8000], dynoRange: [0,500] }
 		},
 		fieldSeparator : ";",
 		valueSeparator : "/",
 		defaultValue   : "*"
+	},
+	defaultContent: {
+		"opActive" : 1,
+		"opSelected" : 0
 	}
 };
 
+function invert( dict ) {
+	var newDict = {};
+
+	for (var key in dict ) {
+		if( dict.hasOwnProperty(key) ) {
+			newDict[ dict[key].value ] = key;
+		}
+	}
+	return newDict;
+}
+
+var reverseMode = invert(Config.csv.mode);

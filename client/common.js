@@ -280,9 +280,6 @@ $(document).ready(function() {
 
 //************************************* datatable common logic **********************************************
 	// if there is no row, there is no need to edit, remove or export csv
-	// if (t1.rows().count() === 0) {
-	// 	t1.buttons(["remove:name", #<{(| "edit:name", |)}># #<{(| "exportcsv:name" |)}>#]).disable();
-	// }
 
 	t2.buttons(["new:name","edit:name","remove:name","mergeAll:name"]).disable();
 
@@ -433,6 +430,7 @@ $(document).ready(function() {
 			dt.buttons(["remove:name","edit:name"]).disable();
 	}
 
+	// generate the value for the channels during the csv export ( "channelValue/Trigger") 
 	function channelsCsvValue(opId) {
 		var line = [];
 		$("#chnDataTable").DataTable().rows().data().each( function ( data, index ) {
@@ -442,6 +440,7 @@ $(document).ready(function() {
 		return line.join(Config.csv.fieldSeparator);
 	}
 
+	// generate the header for the channels during the csv export ( "channelName/type" )
 	function channelsCsvHeader() {
 		var header = [];
 		$("#chnDataTable").DataTable().rows().data().each( function ( data, index ) {

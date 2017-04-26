@@ -1,10 +1,12 @@
-/* global Config alert wizard getNewId Channel FileReader localStorage*/
+/* global Config alert wizard getNewId Channel FileReader localStorage Labels*/
 /* Note:
  * 1 - element of dataTableAutoImport class must have an id which match exactly the data columns field data field 
  */
-//ToDo: change calmelcase name contextual-items, dataTableAutoImport chnLabelList chnValue etc.. => contextual-items
+//TODO: change calmelcase name contextual-items, dataTableAutoImport chnLabelList chnValue etc.. => contextual-items
+//TODO: build option list for unit 
+//TODO: in a2L there is more than map,curve,value => how to deal with that
+
 function chFrm( className ) {
-	
 	var t = "<form id='form-modal' class='" + className + "'>";
 	t += 	"<div class='form-group contextual-items'>" ;
 	t += 	"<label for='label' class='control-label'>Label:</label>"  ;
@@ -163,62 +165,28 @@ function wizardFrm(className) {
 }
 
 //================================================ Init Functions ============================================================================
-function a2lImportInit() {
+function lblImportInit() {
 	var library = Labels();
-	var labelList = [];
 	var reader = new FileReader();
 	var file;
 
 	// store channelList on localStore
-	$("#form-modal.a2l-import").parsley()
+	$("#form-modal.lbl-import").parsley()
 		.on("form:submit", function() {
-			var a2l ={};
-			a2l.list = labelList;
-			a2l.file = file.name;
-			
 			if (typeof(Storage) !== "undefined") {
-				// localStorage.setItem("a2l", JSON.stringify(a2l));
 				localStorage.setItem("a2l", JSON.stringify(library));
 			} else {
 				alert("Sorry! No Web Storage support.. your informations will be lost when you close the browser");
 			}
-
 			modalFormDestroy();
 			return false;
 		});
 
 	// parse A2L file
-	$("#file-selector.a2l-import").on("change",function() {
+	$("#file-selector.lbl-import").on("change",function() {
 		file = this.files[0];
 		
-		function parseA2l( content ) {
-			var re = /\/begin CHARACTERISTIC([\s\S]*?)\/end CHARACTERISTIC/g;
-			var characteristic;
-			var channel = [];
-			while ((  characteristic = re.exec(content)) !== null) {
-				//console.log("regex match, prochaine correspondance à partir de " + re.lastIndex);
-				parseCharacteristics( characteristic[1] );
-			}
-
-			function parseCharacteristics( buffer ) {
-				var re = /[^\s\n\t]+["\w .%-/]+/g;
-				var token = buffer.match(re);
-				var obj ={};
-
-				obj.name = token[0];
-				obj.type = token[2];
-				obj.desc = token[1];
-				obj.min  = parseFloat(token[7]);
-				obj.max  = parseFloat(token[8]);
-				// TODO: for performance reason we must do an ordered insert instead
-				channel.push(obj);
-			}
-			channel = channel.sort(function( a,b) { return a.name.localeCompare(b); });
-			return channel;
-		}
-		
 		reader.onload = function( event ) {
-			// labelList = parseA2l(event.target.result);
 			library.parse(file.name, event.target.result);
 		};
 
@@ -230,7 +198,6 @@ function a2lImportInit() {
 				$(".alert-success").append( "<strong>Success!</strong></br>" );
 				$(".alert-success").append( "file name: " + file.name + "</br>" );
 				$(".alert-success").append( "file size: " + (file.size/1024).toFixed(1) + " KByte </br>" );
-				// $(".alert-success").append( "Channels: " + labelList.length + "</br>" );
 				$(".alert-success").append( "Channels: " + library.db.length + "</br>" );
 				$(".alert-success").append( "Warnings: " + library.errors.length + "</br>" );
 			}
@@ -360,8 +327,6 @@ function chFrmInit() {
 	var rowSelected = dt.rows( ".selected" );
 	var idx= rowSelected.indexes();
 	var a2l = JSON.parse(localStorage.getItem("a2l"));
-	// TODO: realiser le tri au moment du stockage :-)
-	// var labelList = a2l.list;
 	var labelList = a2l.db;
 	var targets = new Set ($("#opDataTable").DataTable().rows(".selected").ids().toArray());
 
@@ -418,12 +383,10 @@ function chFrmInit() {
 		$("#chnTrigger").val(rowSelected.data()[0].chnTrigger);
 		$("#chnValue").val(rowSelected.data()[0].chnValue);
 
-
 		//edit form submit handler
 		$("#form-modal.edit-ch").parsley()
 			.on("form:submit", function() {
 				var obj = {};
-
 				// initialize obj with data from the form 
 				obj.chnLabel = $("#chnLabel-flexdatalist").val();
 				obj.chnType = $("#chnType").val();
@@ -478,7 +441,6 @@ function opFrmInit() {
 	var dt = $("#opDataTable").DataTable();
 	var rowSelected = dt.rows( ".selected" );
 	var idx= rowSelected.indexes();
-
 
 	// update the dyno and engine ranges upon user's mode selection
 	$("select#opMode").on("change", function() {
@@ -549,8 +511,8 @@ function opFrmInit() {
 
 function frmInit(title) {
 	switch(title) {
-	case Config.frm.a2lImport.label :
-		a2lImportInit();
+	case Config.frm.lblImport.label :
+		lblImportInit();
 		break;
 	case Config.frm.csvImport.label :
 		csvImportInit();
@@ -572,7 +534,6 @@ function frmInit(title) {
 		alert("frmInit: unknown form!");
 		return;
 	}
-
 }
 
 // ======================================================== Helpers functions ===========================================================
@@ -594,6 +555,7 @@ function wizardAction() {
 	t1.rows.add(rows).draw();
 	t1.row(0).select();
 }
+
 function buildOptions(dict){
 	var t="";
 	var withValue = Object.keys(dict).every( function(k) { return dict[k].hasOwnProperty("value"); } ); 
@@ -612,8 +574,8 @@ function modalFormCreate(title) {
 	var frm;
 	
 	switch( title ) {
-	case Config.frm.a2lImport.label:
-		frm = uploadFrm(Config.frm.a2lImport.class);
+	case Config.frm.lblImport.label:
+		frm = uploadFrm(Config.frm.lblImport.class);
 		break;
 	case Config.frm.csvImport.label:
 		frm = uploadFrm(Config.frm.csvImport.class);
@@ -643,7 +605,6 @@ function modalFormCreate(title) {
 	m.find(".modal-body").append(frm);
 	// As the button is in .modal-footer so outside the <form></form> we need to bind it to the form
 	m.find(".btn.btn-primary").attr("form", "form-modal");
-
 
 	var opt = {
 		trigger: null,

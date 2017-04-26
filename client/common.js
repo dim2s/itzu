@@ -1,13 +1,11 @@
-/* global $ Chart document Config str_opModal str_chnModal Channel wizard*/
+/* global $ Chart document Config modalFormCreate reverseMode*/
+/* eslint no-unused-vars:off */
 /* unordered ToDo list:
 	child row with additional info: unit, description, etc..
 	hidden column unit, description, type, targetsRow
-	a2l,puma NN list convertion to json
 	onreload page confirmation before loosing data
 	group row by type ( channel tab uniquement )
 	limit the number of row datalist can show ( or use JQuery flexdatalist plugin )
-	autocomplete unit, description and type base on label selection
-	autodetect the type of file(*.a2l, *.csv) and tel the user for invalid file type
 	write on the UI, the a2l et qty.csv in use ( datatable information ? )
 */
 $(document).ready(function() {
@@ -82,7 +80,6 @@ $(document).ready(function() {
 				name: "new" ,
 				className: Config.frm.newCh.class, 
 				action:	function(event, dt, button, config) {
-					// rowEditFormCreate(button,str_chnModal,dt.table().node().id).modal("show");
 					modalFormCreate( button.text() );
 				}
 			},
@@ -100,7 +97,6 @@ $(document).ready(function() {
 				state:false,
 				action: function(event,dt,button,config) {
 					modalFormCreate( button.text() );
-					// editRow(event,dt,button,str_chnModal);
 				}
 			},
 			{ 
@@ -116,18 +112,17 @@ $(document).ready(function() {
 				}
 			},
 			{ 
-				text: Config.frm.a2lImport.label ,
+				text: Config.frm.lblImport.label ,
 				name: "chnImport-btn",
-				className: Config.frm.a2lImport.class,
+				className: Config.frm.lblImport.class,
 				action:	function(event, dt, button, config) {
-					// fileUploadFormCreate(button,str_fileUploadModal).modal("show");
 					modalFormCreate( button.text() );
 				}
 			} 
 		]
 	});
 
-// rowReorder seems not to be compatible with select	
+	// rowReorder seems not to be compatible with select	
 	var t1 = $("#opDataTable").DataTable({
 		rowId: "opId",
 		"columnDefs":[
@@ -146,7 +141,7 @@ $(document).ready(function() {
 						return reverseMode[data];
 					}
 					
-					return data 
+					return data ;
 					// return type === "export" ?  Config.csv.mode[data] : data;
 				}
 			},
@@ -165,7 +160,7 @@ $(document).ready(function() {
 					if ( type === "display") {
 						//Todo: apres un import csv la valeur est une string ensuite la valeur est un number.
 						//A regarder de pret pour avoir de la constistence. en attendant "==="=> "=="
-					if ( data == "1" ) { 
+						if ( data == "1" ) { 
 							return "<span class='glyphicon glyphicon-ok-circle'></span>";
 						} else if ( data == "0" ) {
 							return "<span class='glyphicon glyphicon-ban-circle'></span>";
@@ -261,7 +256,6 @@ $(document).ready(function() {
 				name: Config.frm.csvImport.class,
 				className: Config.frm.csvImport.class,
 				action:	function(event, dt, button, config) {
-					// fileUploadFormCreate(button,str_fileUploadModal).modal("show");
 					modalFormCreate( button.text() );
 				}
 			}
@@ -271,24 +265,7 @@ $(document).ready(function() {
 		} 
 	});
 
-	function channelsCsvValue(opId) {
-		var line = [];
-		$("#chnDataTable").DataTable().rows().data().each( function ( data, index ) {
-			line.push([data.chnSetValues.value(opId),Config.csv.trigger[data.chnTrigger]].join(Config.csv.valueSeparator));
-		});
-
-		return line.join(Config.csv.fieldSeparator);
-	}
-
-	function channelsCsvHeader() {
-		var header = [];
-		$("#chnDataTable").DataTable().rows().data().each( function ( data, index ) {
-			header.push([data.chnLabel, Config.csv.type[data.chnType]].join(Config.csv.valueSeparator));
-		});
-		return header.join(Config.csv.fieldSeparator);
-	}
-
-	//************************************* datatable event handlers **********************************************
+//************************************* datatable event handlers **********************************************
 	t1.on( "order.dt", function () {
 		t1.column(1, { order:"applied"}).nodes().each( function (cell, i) { cell.innerHTML = i; } );
 	} ).draw();
@@ -309,15 +286,8 @@ $(document).ready(function() {
 		toggleChnDataTable_NewBtn() ;
 	} );
 
-	t2.on( "draw", function (e, settings) {
-		//var idSet = $('#opDataTable').DataTable().rows('.selected').ids().toArray();
-		//var channel = $('#chnDataTable').DataTable().row(0).data();
-		//var values = getChnValuesFromSelection( idSet , channel ) ;
-	} );
-
-	//************************************* jQuery event handlers **********************************************
-	//Todo: bugfix when using global select the chart is not refresh
-	
+//************************************* jQuery event handlers **********************************************
+//TODO: bugfix when using global select the chart is not refresh
 	$("#opDataTable_wrapper").on( "click" ,"th.select-checkbox",  function () {
 		var dt=$("#opDataTable").DataTable();
 
@@ -344,158 +314,7 @@ $(document).ready(function() {
 		t1.row(tr_idx).data(d).draw();
 	});
 
-	/*TODO: triggered when a new label is selected
-	/*TODO: triggered when a new label is selected
-	  		should be use in order to autocomplete the form
-	*/
-	$(document).on("change", "#chnLabel", function(e) {
-		console.log("chocote");
-	});
-
-	//clean dynamic element from modal DOM object
-	$("#formModal").on("hidden.bs.modal", function(e) {
-		$("#formModal .contextualItems").remove();
-	});
-
-	//new row, save modal handler
-	/* ToDo:
-		* make this function more dynamique by using only the attribute id without the use of a classname
-		* dynamically retrieve the available datatable id ( if possible )
-	*/
-	$(document).on("click","#ListModify", function(e) {
-		//check who triggered the click event
-		var button = document.getElementById("ListModify"); 
-		var table_id = "#"+button.dataset.tableid;
-		var recipient = button.dataset.btntype;
-		var allowedBtn = [ "Edit", "New"] ;
-
-		//if it's not the chnEdit-btn or chnNew-btn just let a message in console.log but leave
-		if( $.inArray(recipient, allowedBtn) === -1 )
-			return;
-
-		var dt = $(table_id).DataTable();
-		var inputObj = {};
-
-		$("#formModal *").filter(".dataTableAutoImport").each( function() {
-			inputObj[$(this).attr("id")]= $(this).val() ;
-		});
-		
-		inputObj.source = table_id;
-		// todo:
-		//	*retrieve the value of the default content automaticaly
-		//	*defferentiate inputObj op vs chn
-
-		// in any cases during saving operation of 'chnDataTable' form
-		// the saved value is applied to the selection of rows in '#opDataTable'
-		var set = {};
-		if (inputObj.source === "#chnDataTable") {
-			set.value = inputObj.chnValue;
-			set.targets = new Set ($("#opDataTable").DataTable().rows(".selected").ids().toArray());
-		}
-
-		//some times we will add a new row, in other case we will edit the existing row	
-		if( recipient === allowedBtn[1] ) {
-			if ( inputObj.source === "#opDataTable" ) { 
-			// unfortunately defaultContent is not set by datatable in this case so
-			// we should set it manualy 
-				inputObj.opId = getNewId();
-				inputObj.opActive =  1 ;
-				inputObj.opSelected = 0 ;
-			}
-			if ( inputObj.source === "#chnDataTable" ) {
-				// we also supposed the unicity of the setvalues !!must be checked by the form input
-				inputObj.chnSetValues = Channel().create();
-				inputObj.chnSetValues.add(set.value, set.targets);
-			}
-			dt.row.add(inputObj).draw();
-		} else { 
-			//we can use indexes as we're supposed to have only one row selected
-			//make sure it is always the case other wise it is a bug
-			var idx=dt.rows(".selected").indexes();
-			if ( inputObj.source === "#opDataTable" ) {
-				inputObj.opId = dt.row(idx).id();
-				inputObj.opActive = dt.row(idx).data().opActive;
-				inputObj.opSelected = dt.row(idx).data().opSelected;
-			}
-			
-			// no intersection allowed between the current selection and
-			// all other chnTargets
-			if ( inputObj.source === "#chnDataTable" ) {
-				inputObj.chnSetValues = dt.row(idx).data().chnSetValues;
-				inputObj.chnSetValues.add(set.value, set.targets);
-			}
-			dt.row(idx).data(inputObj).draw();
-		}
-		$("#formModal").modal("hide"); 
-	});
-
-	// hander for a2l file import
-	$(document).on("change", "#file-selector.a2l-import", function(e) {
-		// var file = this.files[0];
-		// var reader = new FileReader();
-		// var channelList = [];
-                //
-		// function parseA2l( content ) {
-		// 	var re = /\/begin CHARACTERISTIC([\s\S]*?)\/end CHARACTERISTIC/g;
-		// 	var characteristic;
-		// 	var channel = [];
-		// 	while ((  characteristic = re.exec(content)) !== null) {
-		// 		//console.log("regex match, prochaine correspondance à partir de " + re.lastIndex);
-		// 		parseCharacteristics( characteristic[1] );
-		// 	}
-                //
-		// 	function parseCharacteristics( buffer ) {
-		// 		var re = /[^\s\n\t]+["\w .%-/]+/g;
-		// 		var token = buffer.match(re);
-		// 		var obj ={};
-                //
-		// 		obj.name = token[0];
-		// 		obj.type = token[2];
-		// 		obj.desc = token[1];
-		// 		obj.min  = parseFloat(token[7]);
-		// 		obj.max  = parseFloat(token[8]);
-                //
-		// 		channel.push(obj);
-		// 	}
-                //
-		// 	return channel;
-		// }
-		// reader.onload = function( event ) {
-		// 	channelList = parseA2l(event.target.result);
-		// };
-                //
-		// reader.onloadend = function ( event ) {
-		// 	if ( event.target.readyState == FileReader.DONE ) {
-		// 		$("#formModal").find(".modal-body").append("<div class='file-selector-info contextualItems'>");
-		// 		$(".file-selector-info").append("<hr>");
-		// 		$(".file-selector-info").append("<div class='alert alert-success contextualItems'>");
-		// 		$(".alert-success").append( "<strong>Success!</strong></br>" );
-		// 		$(".alert-success").append( "file name: " + file.name + "</br>" );
-		// 		$(".alert-success").append( "file size: " + (file.size/1024).toFixed(1) + " KByte </br>" );
-		// 		$(".alert-success").append( "Channels: " + channelList.length + "</br>" );
-		// 	}
-		// };
-		//
-                //
-		// reader.readAsText(file);
-                //
-		// $(document).on("click","#btn-a2l-import", function(e) {
-		// 	var a2l ={};
-		// 	a2l.list = channelList;
-		// 	a2l.file = file.name;
-		// 	
-		// 	if (typeof(Storage) !== "undefined") {
-		// 		localStorage.setItem("a2l", JSON.stringify(a2l));
-		// 	} else {
-		// 		alert("Sorry! No Web Storage support.. your informations will be lost when you close the browser");
-		// 	}
-                //
-		// 	$("#formModal").modal("hide"); 
-		// });
-	});
-
-	// handler for csv file import
-	//************************************* datatable common logic **********************************************
+//************************************* datatable common logic **********************************************
 	if (t1.rows().count() === 0)
 		t1.buttons(["remove:name", Config.frm.editOp.class + ":name"]).disable();
 
@@ -505,7 +324,7 @@ $(document).ready(function() {
 	$("#opToolbar").html("<h4>Operating points definition</h4>");
 	$("#chnToolbar").html("<h4>Channels definition</h4>");
 
-	//************************************* helper function **********************************************
+//************************************* helper function **********************************************
 	// make sure that chnDataTable 'new' button is activated only if 
 	// one operating point is selected
 	function toggleChnDataTable_NewBtn() { 
@@ -562,7 +381,7 @@ $(document).ready(function() {
 
 		//toggle the state of the select column value
 		index.forEach( function(i) { 
-			dt.cell(i,'selected:name').data( s ) ;
+			dt.cell(i,"selected:name").data( s ) ;
 		});
 
 		var selectedRows = dt.rows(".selected");
@@ -580,57 +399,20 @@ $(document).ready(function() {
 			dt.buttons(["remove:name","edit:name"]).disable();
 	}
 
-	//type = 'chn' or 'op' 
-	//mais est-ce vraiment necessaire puisqu'il s'agit de la meme fenetre
-	function rowEditFormCreate(b,str,dt_id) {
-		var m=$("#formModal");
-		m.find(".modal-footer").append(
-			'<button type="button" class="btn btn-primary contextualItems" id="ListModify" data-tableid="' +dt_id+ '" data-btntype="'+b.text()+'">Save</button>'
-		//	'<input type="submit" class="btn btn-primary contextualItems" id="btn-newSetvalue" value="Save" form="formNewSetValue">'
-		);
-		m.find(".modal-title").text(b.text());
-		m.find(".modal-body").append(str);
+	function channelsCsvValue(opId) {
+		var line = [];
+		$("#chnDataTable").DataTable().rows().data().each( function ( data, index ) {
+			line.push([data.chnSetValues.value(opId),Config.csv.trigger[data.chnTrigger]].join(Config.csv.valueSeparator));
+		});
 
-		//initialize the datalist only for chnDataTable
-		if ( dt_id === "chnDataTable" )
-			loadChnList();
-
-		return m;
+		return line.join(Config.csv.fieldSeparator);
 	}
 
-	function fileUploadFormCreate(b,str) {
-		var m = $("#formModal");
-		var types = ["csv-import", "a2l-import"];
-		var btnType ="";
-
-		types.some( function(e) { if (b.hasClass(e) ) { btnType = e; } } );
-
-		if (!btnType) {
-			str = "not yet implemented";
-		}
-
-		m.find(".contextualItems").remove();
-		m.find(".modal-title").text(b.text());
-		m.find(".modal-body").append(str);
-		m.find(".modal-footer").append(
-			"<input type='submit' class='btn btn-primary contextualItems' id='btn-" + btnType + "' value='Save' form='form-"+btnType +"'>"
-		);
-		m.find("#file-selector").addClass(btnType);
-		return m;
-	}
-
-	function editRow(e,dt,button,template) {
-		var rowSelected = dt.rows( ".selected" );
-
-		if( rowSelected.count() === 1) {
-			var m= rowEditFormCreate(button,template,dt.table().node().id ); 
-			$("#formModal *").filter(".dataTableAutoImport").each( function() {
-				$(this).val(rowSelected.data()[0][$(this).attr("id")]) ;
-			});
-
-			m.modal("show"); 
-		} else {
-			alert( "something goes wrong! you should not be in this state...." );
-		}
+	function channelsCsvHeader() {
+		var header = [];
+		$("#chnDataTable").DataTable().rows().data().each( function ( data, index ) {
+			header.push([data.chnLabel, Config.csv.type[data.chnType]].join(Config.csv.valueSeparator));
+		});
+		return header.join(Config.csv.fieldSeparator);
 	}
 }); // function.ready({})

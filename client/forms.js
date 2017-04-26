@@ -272,7 +272,8 @@ function csvImportInit() {
 						var chn = {};
 						chn.chnLabel = label;
 						chn.chnType = type;
-						chn.chnTrigger = dict_trigger[trigger];
+						// chn.chnTrigger = dict_trigger[trigger];
+						chn.chnTrigger = trigger;
 						chn.chnSetValues = Channel().create();
 						chn.chnUnit = "";
 						chn.chnDesc = "";
@@ -322,6 +323,7 @@ function wizardFrmInit() {
 		});
 }
 
+// TODO: before validation check that channelLabel#trigger is not duplicate
 function chFrmInit() {
 	var dt = $("#chnDataTable").DataTable();
 	var rowSelected = dt.rows( ".selected" );

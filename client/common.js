@@ -1,4 +1,4 @@
-/* global $ Chart document Config modalFormCreate reverseMode*/
+/* global $ Chart document Config modalFormCreate reverseMode reverseTrigger*/
 /* eslint no-unused-vars:off */
 /* unordered ToDo list:
 	child row with additional info: unit, description, etc..
@@ -67,7 +67,19 @@ $(document).ready(function() {
 					return str; 
 				} 
 			},
-			{title:"Trigger", targets:3, className: "chnTrigger dt-body-center dt-head-center", data: "chnTrigger"},
+			{
+				title:"Trigger",
+				targets:3,
+				className: "chnTrigger dt-body-center dt-head-center",
+				data: "chnTrigger",
+				render: function( data, type, row, meta) {
+					if ( type === "display" ) {
+						return reverseTrigger[data] ; 
+					}
+
+					return data;
+				}
+			},
 			{title:"Type", targets:4, className : "chnType", data: "chnType" , name: "chnType", visible: false} ,
 			{title:"Unit", targets:5, className : "chnUnit", data: "chnUnit", visible: false }, 
 			{title:"Desc", targets:6, className : "chnDesc", data: "chnDesc" , visible: false}
@@ -94,7 +106,6 @@ $(document).ready(function() {
 				text: Config.frm.editCh.label ,
 				name: 	"edit",
 				className: Config.frm.editCh.class,
-				state:false,
 				action: function(event,dt,button,config) {
 					modalFormCreate( button.text() );
 				}
@@ -211,12 +222,12 @@ $(document).ready(function() {
 				name: "remove",
 				action: function( event, dt, btn, config ) {
 					removeRows(event, dt, btn, config);
-					toggleDataTable_EditRemoveBtn(dt) ;
+					// toggleDataTable_EditRemoveBtn(dt) ;
 				}
 			},
 			{
 				text: Config.frm.editOp.label,
-				name: Config.frm.editOp.class,
+				name: "edit",
 				className: "edit",
 				action: function(event,dt,button,config) {
 					modalFormCreate( button.text() );
@@ -233,6 +244,7 @@ $(document).ready(function() {
 			{ 
 				text: "Export CSV", 
 				extend: "csvHtml5",
+				name: "exportcsv",
 				fieldSeparator: Config.csv.fieldSeparator,
 				exportOptions: { 
 					columns: ["active:name","mode:name","engine:name","dyno:name","time:name","channels:name"],
@@ -265,17 +277,41 @@ $(document).ready(function() {
 		} 
 	});
 
+
+//************************************* datatable common logic **********************************************
+	// if there is no row, there is no need to edit, remove or export csv
+	// if (t1.rows().count() === 0) {
+	// 	t1.buttons(["remove:name", #<{(| "edit:name", |)}># #<{(| "exportcsv:name" |)}>#]).disable();
+	// }
+
+	t2.buttons(["new:name","edit:name","remove:name","mergeAll:name"]).disable();
+
+	// toolbar definition
+	$("#opToolbar").html("<h4>Operating points definition</h4>");
+	$("#chnToolbar").html("<h4>Channels definition</h4>");
+
 //************************************* datatable event handlers **********************************************
 	t1.on( "order.dt", function () {
 		t1.column(1, { order:"applied"}).nodes().each( function (cell, i) { cell.innerHTML = i; } );
 	} ).draw();
 
 	t1.on( "draw", function (e, settings) {
-		var data = selectRowToDraw(targetMode); 
+		var data = selectRowToDraw(targetMode);
+
+		// if there is at least one row, we should be able to export an CSV
+		t1.buttons(["exportcsv:name"]).enable(t1.rows().count() > 0 ? true:false);
+
+		// edit is possible only if one and only one row is selected 
+		t1.buttons(["edit:name"]).enable(t1.rows(".selected").count() === 1 ? true:false);
+
+		// remove is possible if there is some selected row 
+		t1.buttons(["remove:name"]).enable(t1.rows(".selected").count() > 0 ? true:false);
+
 		chart.draw(data);
 	} );
 
 	t1.on( "select deselect", function (e,dt,type,index) {
+
 		selectHandler( dt, index, e.type );
 		// we need to re-render '#chnDataTable' to update the polyvalency attribute
 		t2.rows().invalidate("data").draw("false");
@@ -314,21 +350,19 @@ $(document).ready(function() {
 		t1.row(tr_idx).data(d).draw();
 	});
 
-//************************************* datatable common logic **********************************************
-	if (t1.rows().count() === 0)
-		t1.buttons(["remove:name", Config.frm.editOp.class + ":name"]).disable();
-
-	t2.buttons(["new:name","edit:name","remove:name","mergeAll:name"]).disable();
-
-	// toolbar definition
-	$("#opToolbar").html("<h4>Operating points definition</h4>");
-	$("#chnToolbar").html("<h4>Channels definition</h4>");
-
 //************************************* helper function **********************************************
 	// make sure that chnDataTable 'new' button is activated only if 
 	// one operating point is selected
 	function toggleChnDataTable_NewBtn() { 
 		var selectedOp = t1.rows(".selected");
+		//TODO: peut etre remplacer par une ligne de code
+		//var table = $('#myTable').DataTable();
+		// 
+		// table.button( 'edit:name' ).enable(
+		//     table.rows( { selected: true } ).indexes().length === 0 ?
+		//             false :
+		//                     true
+		//                     );
 		if ( selectedOp.count() > 0 ){
 			t2.button("new:name").enable();
 		} else {
@@ -402,7 +436,7 @@ $(document).ready(function() {
 	function channelsCsvValue(opId) {
 		var line = [];
 		$("#chnDataTable").DataTable().rows().data().each( function ( data, index ) {
-			line.push([data.chnSetValues.value(opId),Config.csv.trigger[data.chnTrigger]].join(Config.csv.valueSeparator));
+			line.push([data.chnSetValues.value(opId), data.chnTrigger].join(Config.csv.valueSeparator));
 		});
 
 		return line.join(Config.csv.fieldSeparator);

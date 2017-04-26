@@ -59,3 +59,4 @@ function invert( dict ) {
 }
 
 var reverseMode = invert(Config.csv.mode);
+var reverseTrigger = invert(Config.csv.trigger);

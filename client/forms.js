@@ -166,9 +166,12 @@ function wizardFrm(className) {
 
 //================================================ Init Functions ============================================================================
 function lblImportInit() {
+	// TODO: tell the user that there is no labels available
+	// var library = JSON.parse(localStorage.getItem("a2l"));
 	var library = Labels();
 	var reader = new FileReader();
 	var file;
+
 
 	// store channelList on localStore
 	$("#form-modal.lbl-import").parsley()
@@ -328,17 +331,16 @@ function chFrmInit() {
 	var dt = $("#chnDataTable").DataTable();
 	var rowSelected = dt.rows( ".selected" );
 	var idx= rowSelected.indexes();
-	var a2l = JSON.parse(localStorage.getItem("a2l"));
-	var labelList = a2l.db;
+	var labelCollection = JSON.parse(localStorage.getItem("a2l"));
 	var targets = new Set ($("#opDataTable").DataTable().rows(".selected").ids().toArray());
 
 	$("#chnLabel").flexdatalist({
 		minLength: 1,
 		searchIn: "name",
-		maxShownResults: 10,
+		maxShownResults: 15,
 		visibleProperties: ["name"],
 		valueProperty: "*",
-		data:labelList
+		data:labelCollection.db
 	});
 	
 	$("#chnLabel").on("change:flexdatalist", function(e,value, text, option) {

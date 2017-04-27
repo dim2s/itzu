@@ -34,9 +34,13 @@ labelDb.delete = function () {
 labelDb.load = function() {
 	if ( typeof(Storage) !== "undefined") {
 		var local = JSON.parse(localStorage.getItem("a2l"));
-		this.db = local.db; 
-		this.files = local.files;
-		this.errors = local.errors;
+		if ( local ) { 
+			this.db = local.db; 
+			this.files = local.files;
+			this.errors = local.errors;
+		} else {
+			alert("There is no labels in the store!");
+		}
 	} else {
 		alert("Sorry! No Web Storage support.. your informations will be lost when you close the browser");
 	}

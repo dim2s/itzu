@@ -17,8 +17,8 @@ var Config = {
 			"Time"		:{ label : "TST_SSQ_LENGHT",	data: "opTime" }
 		},
 		trigger : {
-			"Before": { value : 0 },
-			"After" : { value : 1 }
+			"Before ramp operating point": { value : 0 },
+			"After ramp operating point" : { value : 1 }
 		},
 		type : {
 			"MAP"	: "map_ecu",

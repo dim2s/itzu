@@ -23,13 +23,18 @@ $(document).ready(function() {
 		"scrollCollapse": true,
 		"select" : { 
 			style: "os", 
-			selector: "td:first-child"
+			selector: "td.select-row"
 		},
 	});
 
 	var t2 = $("#chnDataTable").DataTable({
 		columnDefs:[
-			{className: "select-checkbox", targets: 0, width: "10px", defaultContent: ""},
+			{ name: "index",
+				title: "#",
+				targets:0 ,
+				defaultContent: "",
+				className: "dt-body-center dt-head-center select-row" //select-row (see CSS), -center to have the header and text aligned
+			},
 			{
 				title:"Label", 
 				targets:1, 
@@ -80,13 +85,38 @@ $(document).ready(function() {
 					return data;
 				}
 			},
-			{title:"Type", targets:4, className : "chnType", data: "chnType" , name: "chnType", visible: false} ,
-			{title:"Unit", targets:5, className : "chnUnit", data: "chnUnit", visible: false }, 
-			{title:"Desc", targets:6, className : "chnDesc", data: "chnDesc" , visible: false}
+			{
+				title:"Type",
+				targets:4,
+				className : "chnType",
+				data: "chnType" ,
+				name: "chnType",
+				visible: false
+			} ,
+			{
+				title:"Unit",
+				targets:5,
+				className : "chnUnit",
+				data: "chnUnit",
+				visible: false
+			}, 
+			{
+				title:"Desc",
+				targets:6,
+				className : "chnDesc",
+				data: "chnDesc" ,
+				visible: false
+			}
 
 		],
 		dom: "<'#chnToolbar'>Britp",
 		buttons: [ // ** do not change the name attribute **
+			{
+				text: "Selection" ,
+				action:	function(event,dt,button, config ) {
+					toogleSelectRows( dt );
+				}
+			},
 			{ 
 				text: Config.frm.newCh.label ,
 				name: "new" ,
@@ -134,12 +164,20 @@ $(document).ready(function() {
 	});
 
 	// rowReorder seems not to be compatible with select	
+	// Container for operating points
 	var t1 = $("#opDataTable").DataTable({
 		rowId: "opId",
 		"columnDefs":[
-			{ orderable: false, targets: "_all"},
-			{ title: "<span id='op-select-all'></span>"     ,  targets:0 , data: null,       className: "select-checkbox",  width: "10px", defaultContent: "" },
-			{ name: "index",	title: "#",		targets:1 , defaultContent: "", className: "dt-body-center dt-head-center" },
+			{
+				orderable: false,
+				targets: "_all"
+			},
+			{ name: "index",
+				title: "#",
+				targets:1 ,
+				defaultContent: "",
+				className: "dt-body-center dt-head-center select-row" //select-row (see CSS), -center to have the header and text aligned
+			},
 			{ 
 				name: "mode",
 				title: "Mode",
@@ -156,13 +194,31 @@ $(document).ready(function() {
 					// return type === "export" ?  Config.csv.mode[data] : data;
 				}
 			},
-			{ name: "dyno",		title: "Dyno",		targets:3 , data: "opDyno" , className: "dt-body-center dt-head-center" },
-			{ name: "engine",	title: "Engine",	targets:4 , data: "opEngine", className: "dt-body-center dt-head-center" },
-			{ name: "time",		title: "Time",		targets:5 , data: "opTime" , className: "dt-body-center dt-head-center" },
+			{
+				name: "dyno",
+				title: "Dyno",
+				targets:3 ,
+				data: "opDyno" ,
+				className: "dt-body-center dt-head-center"
+			},
+			{
+				name: "engine",
+				title: "Engine",
+				targets:4 ,
+				data: "opEngine",
+				className: "dt-body-center dt-head-center"
+			},
+			{
+				name: "time",
+				title: "Time",
+				targets:5 ,
+				data: "opTime" ,
+				className: "dt-body-center dt-head-center"
+			},
 			{ 
 				name: "active",
 				title: "Activ",
-				targets:6 ,
+				targets:0 ,
 				data: "opActive",
 				visible: true ,
 				defaultContent: Config.defaultContent.opActive,
@@ -172,9 +228,9 @@ $(document).ready(function() {
 						//Todo: apres un import csv la valeur est une string ensuite la valeur est un number.
 						//A regarder de pret pour avoir de la constistence. en attendant "==="=> "=="
 						if ( data == "1" ) { 
-							return "<span class='glyphicon glyphicon-ok-circle'></span>";
+							return "<span class='glyphicon glyphicon-check'></span>";
 						} else if ( data == "0" ) {
-							return "<span class='glyphicon glyphicon-ban-circle'></span>";
+							return "<span class='glyphicon glyphicon-unchecked'></span>";
 						}
 					}
 					return data;
@@ -183,7 +239,7 @@ $(document).ready(function() {
 			{
 				name: "selected",
 				title: "Selected",
-				targets:7,
+				targets:6,
 				data: "opSelected",
 				visible: false ,
 				defaultContent: Config.defaultContent.opSelected 
@@ -191,7 +247,7 @@ $(document).ready(function() {
 			{
 				name: "id",
 				title: "Id",
-				targets:8 ,
+				targets:7 ,
 				data: "opId",
 				visible: false ,
 				width: "10px"
@@ -199,7 +255,7 @@ $(document).ready(function() {
 			{ 
 				name: "channels",
 				title: "Channels",
-				targets:9,
+				targets:8,
 				data: null,
 				visible: false,
 				render: function ( data, type, row) {
@@ -209,6 +265,12 @@ $(document).ready(function() {
 		],
 		dom: "<'#opToolbar'>Britp",
 		buttons: [
+			{ 
+				text: "Selection" ,
+				action:	function(event,dt,button, config ) {
+					toogleSelectRows( dt );
+				}
+			},
 			{ 
 				text: Config.frm.newOp.label ,
 				name: Config.frm.newOp.class,
@@ -288,8 +350,14 @@ $(document).ready(function() {
 	$("#chnToolbar").html("<h4>Channels definition</h4>");
 
 //************************************* datatable event handlers **********************************************
+	// compute the cell index
+	// TODO: on code for both datatables 
 	t1.on( "order.dt", function () {
-		t1.column(1, { order:"applied"}).nodes().each( function (cell, i) { cell.innerHTML = i; } );
+		t1.column("index:name"/* 1 */, { order:"applied"}).nodes().each( function (cell, i) { cell.innerHTML = i; } );
+	} ).draw();
+	
+	t2.on( "order.dt", function () {
+		t2.column("index:name", { order:"applied"}).nodes().each( function (cell, i) { cell.innerHTML = i; } );
 	} ).draw();
 
 	t1.on( "draw", function (e, settings) {
@@ -320,17 +388,6 @@ $(document).ready(function() {
 	} );
 
 //************************************* jQuery event handlers **********************************************
-//TODO: bugfix when using global select the chart is not refresh
-	$("#opDataTable_wrapper").on( "click" ,"th.select-checkbox",  function () {
-		var dt=$("#opDataTable").DataTable();
-
-		// toggle select status for all rows	
-		if (dt.rows(".selected").count() > 0) {
-			dt.rows().deselect().draw();
-		} else { 
-			dt.rows().select().draw();
-		}
-	});
 
 	// toggle Activ cell value on click
 	$("#opDataTable tbody").on( "click", "td.active-control" , function () {
@@ -348,6 +405,16 @@ $(document).ready(function() {
 	});
 
 //************************************* helper function **********************************************
+	function toogleSelectRows( dt ) {
+		// 	var dt=$("#opDataTable").DataTable();
+		//we call the draw method to force refreshing of the chart! otherwise it would not be necessary
+		// toggle select status for all rows	
+		if (dt.rows(".selected").count() > 0) {
+			dt.rows().deselect().draw();
+		} else { 
+			dt.rows().select().draw();
+		}
+	}
 	// make sure that chnDataTable 'new' button is activated only if 
 	// one operating point is selected
 	function toggleChnDataTable_NewBtn() { 

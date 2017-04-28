@@ -6,7 +6,7 @@ var Config = {
 		newCh:  { label: "NewC"   , class: "new-ch"  },
 		editCh: { label: "EditC"  , class: "edit-ch" },
 		csvImport: { label: "Import CSV"  , class: "csv-import" },
-		lblImport: { label: "Import Labels"  , class: "lbl-import" },
+		lblImport: { label: "Config"  , class: "lbl-import" },
 	},
 	csv : {
 		header : {

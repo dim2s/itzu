@@ -22,8 +22,7 @@ $(document).ready(function() {
 		"scrollY": "600px",
 		"scrollCollapse": true,
 		"select" : { 
-			style: "os", 
-			selector: "td.select-row"
+			style: "os" 
 		},
 	});
 
@@ -33,7 +32,10 @@ $(document).ready(function() {
 				title: "#",
 				targets:0 ,
 				defaultContent: "",
-				className: "dt-body-center dt-head-center select-row" //select-row (see CSS), -center to have the header and text aligned
+				className: "dt-body-center dt-head-center select-row", //select-row (see CSS), -center to have the header and text aligned
+				render: function ( data, type, row, meta ) {
+					return meta.row;
+				}
 			},
 			{
 				title:"Label", 
@@ -57,7 +59,11 @@ $(document).ready(function() {
 
 					switch (status) {
 					case "sticky" :
-						str=row.chnSetValues.default + " " + row["chnUnit"] + "<span class='glyphicon glyphicon-pushpin'></span>";
+						var valToRender = row.chnSetValues.default;
+						if ( valToRender === Config.csv.defaultValue ) {
+							valToRender = "<span class='glyphicon glyphicon-asterisk'></span>";
+						} 
+						str= valToRender + "<span class='glyphicon glyphicon-pushpin'></span>";
 						break;
 					case "multi" :
 						str = "<span class='glyphicon glyphicon-option-horizontal'></span>";
@@ -66,7 +72,7 @@ $(document).ready(function() {
 						str = "<span class='glyphicon glyphicon-asterisk'></span>";
 						break;
 					case "single" : 
-						str = row.chnSetValues.filter(idSet)[0].value + " " + row["chnUnit"];
+						str = row.chnSetValues.filter(idSet)[0].value ;
 						break;
 					}
 					return str; 
@@ -122,7 +128,7 @@ $(document).ready(function() {
 				name: "new" ,
 				className: Config.frm.newCh.class, 
 				action:	function(event, dt, button, config) {
-					modalFormCreate( button.text() );
+					modalFormCreate( button.text(), Config.frm.newCh.class );
 				}
 			},
 			{ 
@@ -137,7 +143,7 @@ $(document).ready(function() {
 				name: 	"edit",
 				className: Config.frm.editCh.class,
 				action: function(event,dt,button,config) {
-					modalFormCreate( button.text() );
+					modalFormCreate( button.text() , Config.frm.editCh.class);
 				}
 			},
 			{ 
@@ -145,9 +151,12 @@ $(document).ready(function() {
 				name: "mergeAll",
 				action: function( event, dt, button, config) {
 					var rows = dt.rows(".selected");
+					var opId = $("#opDataTable").DataTable().rows( { selected : true } ).ids().toArray()[0];
 
 					rows.every( function (rowIdx, tableLoop, rowLoop ) {
-						dt.row( rowIdx ).data().chnSetValues.mergeAll(dt.row( rowIdx ).data().chnValue);
+						var val  = dt.row(rowIdx).data().chnSetValues.value( opId );
+						// dt.row( rowIdx ).data().chnSetValues.mergeAll(dt.row( rowIdx ).data().chnValue);
+						dt.row( rowIdx ).data().chnSetValues.mergeAll( val );
 					});
 					dt.rows().invalidate("data").draw("false");
 				}
@@ -157,7 +166,7 @@ $(document).ready(function() {
 				name: "chnImport-btn",
 				className: Config.frm.lblImport.class,
 				action:	function(event, dt, button, config) {
-					modalFormCreate( button.text() );
+					modalFormCreate( button.text(), Config.frm.lblImport.class);
 				}
 			} 
 		]
@@ -172,11 +181,36 @@ $(document).ready(function() {
 				orderable: false,
 				targets: "_all"
 			},
-			{ name: "index",
+			{ 
+				name: "active",
+				title: "Activ",
+				targets:0 ,
+				data: "opActive",
+				visible: true ,
+				defaultContent: Config.defaultContent.opActive,
+				className: "dt-body-center dt-head-center active-control",
+				render: function ( data, type, row) {
+					if ( type === "display") {
+						//Todo: apres un import csv la valeur est une string ensuite la valeur est un number.
+						//A regarder de pret pour avoir de la constistence. en attendant "==="=> "=="
+						if ( data === 1 ) { 
+							return "<span class='glyphicon glyphicon-check'></span>";
+						} else if ( data === 0 ) {
+							return "<span class='glyphicon glyphicon-unchecked'></span>";
+						}
+					}
+					return data;
+				}
+			},
+			{
+				// name: "index",
 				title: "#",
 				targets:1 ,
 				defaultContent: "",
-				className: "dt-body-center dt-head-center select-row" //select-row (see CSS), -center to have the header and text aligned
+				className: "dt-body-center dt-head-center select-row", //select-row (see CSS), -center to have the header and text aligned
+				render: function ( data, type, row, meta ) {
+					return meta.row;
+				}
 			},
 			{ 
 				name: "mode",
@@ -214,27 +248,6 @@ $(document).ready(function() {
 				targets:5 ,
 				data: "opTime" ,
 				className: "dt-body-center dt-head-center"
-			},
-			{ 
-				name: "active",
-				title: "Activ",
-				targets:0 ,
-				data: "opActive",
-				visible: true ,
-				defaultContent: Config.defaultContent.opActive,
-				className: "dt-body-center dt-head-center active-control",
-				render: function ( data, type, row) {
-					if ( type === "display") {
-						//Todo: apres un import csv la valeur est une string ensuite la valeur est un number.
-						//A regarder de pret pour avoir de la constistence. en attendant "==="=> "=="
-						if ( data == "1" ) { 
-							return "<span class='glyphicon glyphicon-check'></span>";
-						} else if ( data == "0" ) {
-							return "<span class='glyphicon glyphicon-unchecked'></span>";
-						}
-					}
-					return data;
-				}
 			},
 			{
 				name: "selected",
@@ -276,7 +289,7 @@ $(document).ready(function() {
 				name: Config.frm.newOp.class,
 				className: "new", 
 				action:	function(event,dt,button, config ) {
-					modalFormCreate( button.text() );
+					modalFormCreate( button.text(), Config.frm.newOp.class );
 				}
 			},
 			{
@@ -292,7 +305,7 @@ $(document).ready(function() {
 				name: "edit",
 				className: "edit",
 				action: function(event,dt,button,config) {
-					modalFormCreate( button.text() );
+					modalFormCreate( button.text(), Config.frm.editOp.class);
 				}
 			},
 			{ 
@@ -300,7 +313,7 @@ $(document).ready(function() {
 				name: Config.frm.wizard.class,
 				className : Config.frm.wizard.class,
 				action:	function(event, dt, button, config) {
-					modalFormCreate( button.text() );
+					modalFormCreate( button.text(), Config.frm.wizard.class);
 				}
 			},
 			{ 
@@ -330,7 +343,7 @@ $(document).ready(function() {
 				name: Config.frm.csvImport.class,
 				className: Config.frm.csvImport.class,
 				action:	function(event, dt, button, config) {
-					modalFormCreate( button.text() );
+					modalFormCreate( button.text(), Config.frm.csvImport.class);
 				}
 			}
 		],
@@ -344,22 +357,13 @@ $(document).ready(function() {
 	// if there is no row, there is no need to edit, remove or export csv
 
 	t2.buttons(["new:name","edit:name","remove:name","mergeAll:name"]).disable();
+	t1.buttons(["edit:name","remove:name","exportcsv:name"]).disable();
 
 	// toolbar definition
 	$("#opToolbar").html("<h4>Operating points definition</h4>");
 	$("#chnToolbar").html("<h4>Channels definition</h4>");
 
 //************************************* datatable event handlers **********************************************
-	// compute the cell index
-	// TODO: on code for both datatables 
-	t1.on( "order.dt", function () {
-		t1.column("index:name"/* 1 */, { order:"applied"}).nodes().each( function (cell, i) { cell.innerHTML = i; } );
-	} ).draw();
-	
-	t2.on( "order.dt", function () {
-		t2.column("index:name", { order:"applied"}).nodes().each( function (cell, i) { cell.innerHTML = i; } );
-	} ).draw();
-
 	t1.on( "draw", function (e, settings) {
 		var data = selectRowToDraw(targetMode);
 
@@ -367,20 +371,19 @@ $(document).ready(function() {
 		t1.buttons(["exportcsv:name"]).enable(t1.rows().count() > 0 ? true:false);
 
 		// edit is possible only if one and only one row is selected 
-		t1.buttons(["edit:name"]).enable(t1.rows(".selected").count() === 1 ? true:false);
+		t1.buttons(["edit:name"]).enable(t1.rows({ selected: true }).count() === 1 ? true:false);
 
 		// remove is possible if there is some selected row 
-		t1.buttons(["remove:name"]).enable(t1.rows(".selected").count() > 0 ? true:false);
+		t1.buttons(["remove:name"]).enable(t1.rows({ selected: true }).count() > 0 ? true:false);
 
 		chart.draw(data);
 	} );
 
 	t1.on( "select deselect", function (e,dt,type,index) {
-
 		selectHandler( dt, index, e.type );
 		// we need to re-render '#chnDataTable' to update the polyvalency attribute
 		t2.rows().invalidate("data").draw("false");
-	} ).draw();
+	} );
 
 	t2.on( "select deselect", function (e,dt,type,index) {
 		toggleDataTable_EditRemoveBtn(dt) ;
@@ -395,13 +398,11 @@ $(document).ready(function() {
 		var tr_idx = tr.index();
 		var d = t1.row(tr_idx).data();
 
-		if ( d["opActive"] === 0 ){
-			d["opActive"] = 1;
-		}else{
-			d["opActive"] = 0;
-		}
+		d["opActive"] = d["opActive"] === 0 ? 1 : 0;
 
-		t1.row(tr_idx).data(d).draw();
+		//the draw is needed to rerender the tble and the graph
+		t1.row(tr_idx).data(d).draw("page");
+
 	});
 
 //************************************* helper function **********************************************

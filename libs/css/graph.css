@@ -21,7 +21,7 @@ circle[data-active=false] {
 }
 
 
-.dataTable tbody > tr > td.select-row {
+span.glyphicon.glyphicon-check, span.glyphicon.glyphicon-unchecked {
 	cursor: pointer;
 }
 

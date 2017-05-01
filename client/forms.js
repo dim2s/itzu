@@ -6,6 +6,21 @@
 //TODO: build option list for unit 
 //TODO: in a2L there is more than map,curve,value => how to deal with that
 
+const parsleyConfig = {
+	trigger: null,
+	classHandler: function(el) { 
+		return el.$element.closest("div.form-group");
+	},
+	errorsContainer: function(el) { 
+		return el.$element.closest("div.form-group");
+	},
+	errorsWrapper: "<span class='help-block'></span>", // do not set an id for this elem, it would have an auto-generated id
+	errorElem: "<span></span>" ,
+	errorTemplate: "<span>/<span>",
+	errorClass: "has-error",
+	successClass: "has-success"
+};
+
 function chFrm( className ) {
 	var t = "<form id='form-modal' class='" + className + "'>";
 	t += 	"<div class='form-group contextual-items'>" ;
@@ -176,12 +191,11 @@ function lblImportInit() {
 	var reader = new FileReader();
 	var file;
 
-	$("#form-modal.lbl-import").parsley()
-		.on("form:submit", function() {
-			library.save();
-			modalFormDestroy();
-			return false;
-		});
+	$(".save").on("click",function() {
+		library.save();
+		modalFormDestroy();
+		return false;
+	});
 
 	// parse A2L file
 	$("#file-selector.lbl-import").on("change",function() {
@@ -218,20 +232,18 @@ function csvImportInit() {
 	var opList = [];
 	var chnList = {};
 
-	$("#form-modal.csv-import").parsley()
-		.on("form:submit", function() {
+	$(".save").on("click", function() {
+		$("#opDataTable").DataTable().clear().rows.add(opList).draw();
+		$("#chnDataTable").DataTable().clear();
 
-			$("#opDataTable").DataTable().clear().rows.add(opList).draw();
-			$("#chnDataTable").DataTable().clear();
+		for ( let key in chnList ) {
+			$("#chnDataTable").DataTable().row.add(chnList[key]);
+		}
+		$("#chnDataTable").DataTable().rows().draw();
 
-			for ( let key in chnList ) {
-				$("#chnDataTable").DataTable().row.add(chnList[key]);
-			}
-			$("#chnDataTable").DataTable().rows().draw();
-
-			modalFormDestroy();
-			return false;
-		});
+		modalFormDestroy();
+		return false;
+	});
 
 	$("#file-selector.csv-import").on("change",function() {
 		var file = this.files[0];
@@ -316,18 +328,20 @@ function csvImportInit() {
 }
 
 function wizardFrmInit() {
+	var formInstance = $("#form-modal.wizard").parsley(parsleyConfig);
+
 	$("select#regulation-mode").on("change", function() {
 		var mode = $("#regulation-mode option:selected").text();
 		$("#min-engine,#max-engine").attr("data-parsley-range","["+Config.csv.mode[mode].engineRange.toString()+"]");
 		$("#min-dyno,#max-dyno").attr("data-parsley-range","["+Config.csv.mode[mode].dynoRange.toString()+"]");
 	});
 
-	$("#form-modal.wizard").parsley()
-		.on("form:submit", function() {
+	$(".save").on("click", function() {
+		if ( formInstance.validate() ) {
 			wizardAction();
 			modalFormDestroy();
-			return false;
-		});
+		}
+	});
 }
 
 // TODO: before validation check that channelLabel#trigger is not duplicate
@@ -337,6 +351,7 @@ function chFrmInit() {
 	var idx= rowSelected.indexes();
 	var labelCollection = Labels().load();
 	var targets = new Set ($("#opDataTable").DataTable().rows(".selected").ids().toArray());
+	var formInstance = $("#form-modal").parsley(parsleyConfig);
 
 	$("#chnLabel").flexdatalist({
 		minLength: 1,
@@ -390,152 +405,157 @@ function chFrmInit() {
 		$("#chnDesc").val(rowSelected.data()[0].chnDesc);
 		$("#chnTrigger").val(rowSelected.data()[0].chnTrigger);
 		$("#chnValue").val(rowSelected.data()[0].chnValue);
+	} 
+	
+	$("#btn-new-ch").on("click", function() {
+		if ( formInstance.validate() ) {
+			var obj = {};
 
-		//edit form submit handler
-		$("#form-modal.edit-ch").parsley()
-			.on("form:submit", function() {
-				var obj = {};
-				// initialize obj with data from the form 
-				obj.chnLabel = $("#chnLabel-flexdatalist").val();
-				obj.chnType = $("#chnType").val();
-				obj.chnUnit = $("#chnUnit").val();
-				obj.chnDesc = $("#chnDesc").val();
-				obj.chnTrigger = $("#chnTrigger").val();
-				obj.chnValue = $("#chnValue").val();
-				
-				// initialize remaining field with datatable
-				obj.chnSetValues = dt.row(idx).data().chnSetValues;
-				obj.chnSetValues.add(obj.chnValue, targets);
+			// initialize obj with data from the form 
+			obj.chnLabel = $("#chnLabel-flexdatalist").val();
+			obj.chnType = $("#chnType").val();
+			obj.chnUnit = $("#chnUnit").val();
+			obj.chnDesc = $("#chnDesc").val();
+			obj.chnTrigger = $("#chnTrigger").val();
+			obj.chnValue = $("#chnValue").val();
+			obj.chnSetValues = Channel().create();
 
-				//update data table
-				dt.row(idx).data(obj).draw();
+			obj.chnSetValues.add( obj.chnValue, targets);
 
-				modalFormDestroy();
-				$("#chnLabel").flexdatalist("destroy");
-				return false;
-			});
+			// add the row and force a draw
+			dt.row.add(obj).draw();
+			modalFormDestroy();
+			$("#chnLabel").flexdatalist("destroy");
+		}
+	});
 
-	} else if ( $("#form-modal").hasClass("new-ch") ) {
-		$("#form-modal.new-ch").parsley()
-			.on("form:submit", function() {
-				var obj = {};
+	$("#btn-edit-ch").on("click", function() {
+		if ( formInstance.validate() ) {
+			var obj = {};
+			// initialize obj with data from the form 
+			obj.chnLabel = $("#chnLabel-flexdatalist").val();
+			obj.chnType = $("#chnType").val();
+			obj.chnUnit = $("#chnUnit").val();
+			obj.chnDesc = $("#chnDesc").val();
+			obj.chnTrigger = $("#chnTrigger").val();
+			obj.chnValue = $("#chnValue").val();
 
+			// initialize remaining field with datatable
+			obj.chnSetValues = dt.row(idx).data().chnSetValues;
+			obj.chnSetValues.add(obj.chnValue, targets);
 
-				// initialize obj with data from the form 
-				obj.chnLabel = $("#chnLabel-flexdatalist").val();
-				obj.chnType = $("#chnType").val();
-				obj.chnUnit = $("#chnUnit").val();
-				obj.chnDesc = $("#chnDesc").val();
-				obj.chnTrigger = $("#chnTrigger").val();
-				obj.chnValue = $("#chnValue").val();
-				obj.chnSetValues = Channel().create();
+			//update data table
+			dt.row(idx).data(obj).draw();
 
-				obj.chnSetValues.add( obj.chnValue, targets);
-
-				// add the row and force a draw
-				dt.row.add(obj).draw();
-				modalFormDestroy();
-				$("#chnLabel").flexdatalist("destroy");
-				// submitting the form data will force a reload of the page,
-				// we don't want it so we return false
-				return false;
-			});
-	} else {
-		alert("opFrmInit: unknown form!!!!");
-	}
+			modalFormDestroy();
+			$("#chnLabel").flexdatalist("destroy");
+			return false;
+		}
+	});
 }
+
 
 function opFrmInit() {
 	var dt = $("#opDataTable").DataTable();
 	var rowSelected = dt.rows( ".selected" );
 	var idx= rowSelected.indexes();
 
-	// update the dyno and engine ranges upon user's mode selection
-	$("select#opMode").on("change", function() {
+	function updateRange() {
 		var mode = $("#opMode option:selected").text();
 		$("#opEngine").attr("data-parsley-range","["+Config.csv.mode[mode].engineRange.toString()+"]");
 		$("#opDyno").attr("data-parsley-range","["+Config.csv.mode[mode].dynoRange.toString()+"]");
-	});
+	}
 
-	if ( $("#form-modal").hasClass("edit-op") ) { 
-		// in edit mode we initialize the form the datatqble 
-		// we should have only one row selected
+	if ( $("form#form-modal").hasClass("edit-op") ) {
+		//in Edit mode  we should have only one row selected
 		if ( rowSelected.count() !== 1 ) {
 			alert("opFrmInit: [WARNING] several rows where selected instead of one");
 			return;
 		}
+
+		// in edit mode we initialize the form the datatqble 
+		//fill the form with data of the corresponding row
 		$("#form-modal *").filter(".dataTableAutoImport").each( function() {
 			$(this).val(rowSelected.data()[0][$(this).attr("id")]) ;
 		});
 
-		//edit form submit handler
-		$("#form-modal.edit-op").parsley()
-			.on("form:submit", function() {
-				var obj = {};
-
-				// initialize obj with data from the form 
-				$("#form-modal *").filter(".dataTableAutoImport").each( function() {
-					obj[$(this).attr("id")]= $(this).val() ;
-				});
-				
-				// initialize remaining field with datatable
-				obj.opId = dt.row(idx).id();
-				obj.opActive = dt.row(idx).data().opActive;
-				obj.opSelected = dt.row(idx).data().opSelected;
-
-				//update data table
-				dt.row(idx).data(obj).draw();
-
-				modalFormDestroy();
-				return false;
-			});
-
-	} else if ( $("#form-modal").hasClass("new-op") ) {
-		$("#form-modal.new-op").parsley()
-			.on("form:submit", function() {
-				var obj = {};
-
-				// retrieve data from the form
-				$("#form-modal *").filter(".dataTableAutoImport").each( function() {
-					obj[$(this).attr("id")]= $(this).val() ;
-				});
-
-				//should set it manualy , defaultContent configuartion won't do it!
-				obj.opId	= getNewId();
-				obj.opActive	= Config.defaultContent.opActive;
-				obj.opSelected	= Config.defaultContent.opSelected; 
-
-				// add the row and force a draw
-				dt.row.add(obj).draw();
-				modalFormDestroy();
-				// submitting the form data will force a reload of the page,
-				// we don't want it so we return false
-				return false;
-			});
-	} else {
-		alert("opFrmInit: unknown form!!!!");
+		updateRange();
 	}
+
+	// update the dyno and engine ranges upon user's mode selection
+	$("select#opMode").on("change", function () { updateRange(); } );
+
+	//edit form submit handler
+	$("#btn-edit-op").on("click", function() {
+		let formInstance = $("#form-modal").parsley(parsleyConfig);
+		if ( formInstance.validate() ) {
+			var obj = {};
+
+			// initialize obj with data from the form 
+			$("#form-modal *").filter(".dataTableAutoImport").each( function() {
+				obj[$(this).attr("id")]= $(this).val() ;
+			});
+			
+			// initialize remaining field with datatable
+			obj.opId = dt.row(idx).id();
+			obj.opActive = dt.row(idx).data().opActive;
+			obj.opSelected = dt.row(idx).data().opSelected;
+
+			//update data table
+			dt.row(idx).data(obj).draw();
+
+			modalFormDestroy();
+			return false;
+		}
+	});
+
+	$("#btn-new-op").on("click", function() {
+		let formInstance = $("#form-modal.new-op").parsley(parsleyConfig);
+		if ( formInstance.validate() ) {
+			var obj = {};
+
+			// retrieve data from the form
+			$("#form-modal *").filter(".dataTableAutoImport").each( function() {
+				obj[$(this).attr("id")]= $(this).val() ;
+			});
+
+			//should set it manualy , defaultContent configuartion won't do it!
+			obj.opId	= getNewId();
+			obj.opActive	= Config.defaultContent.opActive;
+			obj.opSelected	= Config.defaultContent.opSelected; 
+
+			// add the row and force a draw
+			dt.row.add(obj).draw();
+
+			// select the last row added ( last row of the table in our case )
+			dt.rows().deselect();
+			dt.row( dt.rows().count() -1 ).select();
+
+			formInstance.destroy();
+			modalFormDestroy();
+		}
+	});
 }
 
-function frmInit(title) {
-	switch(title) {
-	case Config.frm.lblImport.label :
+function frmInit(classname) {
+	switch(classname) {
+	case Config.frm.lblImport.class :
 		lblImportInit();
 		break;
-	case Config.frm.csvImport.label :
+	case Config.frm.csvImport.class :
 		csvImportInit();
 		break;
-	case Config.frm.wizard.label :
+	case Config.frm.wizard.class :
 		wizardFrmInit();
 		break;
 	
-	case Config.frm.newOp.label :
-	case Config.frm.editOp.label :
+	case Config.frm.newOp.class :
+	case Config.frm.editOp.class :
 		opFrmInit();
 		break;
 
-	case Config.frm.newCh.label :
-	case Config.frm.editCh.label :
+	case Config.frm.newCh.class :
+	case Config.frm.editCh.class :
 		chFrmInit();
 		break;
 	default:
@@ -577,31 +597,31 @@ function buildOptions(dict){
 	return t;
 }
 
-function modalFormCreate(title) {
+function modalFormCreate(title,classname) {
 	var m = $("#modal-dialog");
 	var frm;
 	
-	switch( title ) {
-	case Config.frm.lblImport.label:
-		frm = uploadFrm(Config.frm.lblImport.class);
+	switch( classname ) {
+	case Config.frm.lblImport.class:
+		frm = uploadFrm(classname);
 		break;
-	case Config.frm.csvImport.label:
-		frm = uploadFrm(Config.frm.csvImport.class);
+	case Config.frm.csvImport.class:
+		frm = uploadFrm(classname);
 		break;
-	case Config.frm.editOp.label :
-		frm = opFrm(Config.frm.editOp.class); 
+	case Config.frm.editOp.class :
+		frm = opFrm(classname); 
 		break;
-	case Config.frm.newOp.label :
-		frm = opFrm(Config.frm.newOp.class); 
+	case Config.frm.newOp.class :
+		frm = opFrm(classname); 
 		break;
-	case Config.frm.editCh.label :
-		frm = chFrm(Config.frm.editCh.class); 
+	case Config.frm.editCh.class :
+		frm = chFrm(classname); 
 		break;
-	case Config.frm.newCh.label :
-		frm = chFrm(Config.frm.newCh.class); 
+	case Config.frm.newCh.class :
+		frm = chFrm(classname); 
 		break;
-	case Config.frm.wizard.label :
-		frm = wizardFrm(Config.frm.wizard.class); 
+	case Config.frm.wizard.class :
+		frm = wizardFrm(classname); 
 		break;
 
 	default:
@@ -610,37 +630,23 @@ function modalFormCreate(title) {
 	}
 
 	m.find(".modal-title").text(title);
-	m.find(".modal-body").append(frm);
-	// As the button is in .modal-footer so outside the <form></form> we need to bind it to the form
-	m.find(".btn.btn-primary").attr("form", "form-modal");
+	m.find(".modal-body > .dynamic-content").html(frm);
+	// puis 
+	m.find(".modal-footer > .save").attr("id", "btn-"+classname);
 
-	var opt = {
-		trigger: null,
-		classHandler: function(el) { 
-			return el.$element.closest("div.form-group");
-		},
-		errorsContainer: function(el) { 
-			return el.$element.closest("div.form-group");
-		},
-		errorsWrapper: "<span class='help-block'></span>", // do not set an id for this elem, it would have an auto-generated id
-		errorElem: "<span></span>" ,
-		errorTemplate: "<span>/<span>",
-		errorClass: "has-error",
-		successClass: "has-success"
-	};
 
-	$("#form-modal").parsley(opt)
-		.on("field:validated", function() {
-			var ok = $(".parsley-error").length === 0;
-			$(".bs-callout-info").toggleClass("hidden", !ok);
-			$(".bs-callout-warning").toggleClass("hidden", ok);
-		});
+	// $("#form-modal").parsley(opt)
+	// 	.on("field:validated", function() {
+	// 		var ok = $(".parsley-error").length === 0;
+	// 		$(".bs-callout-info").toggleClass("hidden", !ok);
+	// 		$(".bs-callout-warning").toggleClass("hidden", ok);
+	// 	});
 
-	$(".btn-default").on("click", function() {
+	$(".close,.cancel").on("click", function() {
 		modalFormDestroy();	
 	});
 
-	frmInit(title);
+	frmInit(classname);
 	m.modal("show");
 }
 
@@ -649,7 +655,9 @@ function modalFormDestroy() {
 
 	// $("#form-modal").parsley().destroy();
 	m.find(".modal-title").empty();
-	m.find(".modal-body").empty();
-	m.find(".btn.btn-primary").removeAttr("form");
+	m.find(".modal-body > .dynamic-content").empty();
+	m.find(".modal-footer > .save").removeAttr("id");
+	$("button.save").off("click"); 
+	// m.find(".btn.btn-primary").removeAttr("form");
 	m.modal("hide");
 }

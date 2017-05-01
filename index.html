@@ -46,13 +46,17 @@
 						<h4 class="modal-title">Modal Header</h4>
 					</div>
 					<div class="modal-body">
-						<!--p>Some text in the modal.</p-->
+						<div class="bs-callout hidden">
+							<h4>title for the callout</h4>
+							<p>text for the callout</p>
+						</div>
+						<span class = "dynamic-content"> some content </span>
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="previous btn btn-info pull-left hidden" data-dismiss="modal">&lt; Previous</button>
 						<button type="button" class="next btn btn-info pull-right hidden" data-dismiss="modal">Next &gt;</button>
-						<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-						<button type="submit" class="btn btn-primary pull-right" form="form-modal">Save</button>
+						<button type="button" class="cancel btn btn-default" data-dismiss="modal">Cancel</button>
+						<button type="button" class="save btn btn-primary pull-right" >Save</button>
 					</div>
 				</div> <!-- /.modal-content -->
 			</div><!-- /.modal-dialog-->
@@ -113,6 +117,7 @@
 		<script type="text/javascript" src="libs/papaparse.min.js" ></script>
 		<script type="text/javascript" src="libs/murmurhash2_gc.js"></script>
 		<script type="text/javascript" src="libs/mustache.min.js"></script>
+		<script type="text/javascript" src="client/polyfill.js"></script>
 		<script type="text/javascript" src="client/config.js"></script>
 		<script type="text/javascript" src="client/wizard.js"></script>
 		<script type="text/javascript" src="client/forms.js"></script>

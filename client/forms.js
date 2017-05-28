@@ -97,11 +97,8 @@ function configFrm(className) {
 	t += "</br>";
 	t += "<div class='text-center'>";
 	t += "<div class='btn-group btn-group-lg'>";
-	t += 	"<label class='btn btn-default' for='a2l-file-selector'>" ;
-	t += 		"<input id='a2l-file-selector' class='" + className + "' type='file' style='display:none;' >Select A2L" ; 
-	t += 	"</label>";
-	t += 	"<label class='btn btn-default' for='csv-file-selector'>" ;
-	t += 		"<input id='csv-file-selector' class='" + className + "' type='file' style='display:none;' >Select CSV" ; 
+	t += 	"<label class='btn btn-default' for='a2lcsv-file-selector'>" ;
+	t += 		"<input id='a2lcsv-file-selector' class='" + className + "' type='file' style='display:none;' >Select A2L or CSV" ; 
 	t += 	"</label>";
 	t += 	 "<button type='button' class='btn btn-default' id='delete-labels' >Delete labels</button>";
 	t += "</div>";
@@ -255,7 +252,7 @@ function lblImportInit() {
 	});
 
 	// parse A2L file
-	$("#a2l-file-selector,#csv-file-selector").on("change",function() {
+	$("#a2lcsv-file-selector").on("change",function() {
 		file = this.files[0];
 		
 		reader.onload = function( event ) {

@@ -74,6 +74,41 @@ function uploadFrm(className) {
 	return t;
 }
 
+function configFrm(className) {
+	var t = "";
+	var library = Labels().load();
+
+	t+= "<p>You can upload labels from A2l files or Puma quantities CSV files";
+	t+= ". These labels will be used for the autocompletion feature when you create";
+	t+= " or Edit a label.</p>";
+	t += "<div class='bs-callout bs-callout-info'>";
+	t += "<h4>Currently in use</h4>";
+	if ( library.files.length === 0 ) {
+		t += "no source file for labels in local store";
+	} else {
+		t += "<ul>";
+		for ( let k in library.files ) {
+			t += "<li><strong>" + library.files[k].type + "</strong>: " + library.files[k].file + "</li>";
+		}
+		t += "</ul>";
+	}
+
+	t += "</div>";
+	t += "</br>";
+	t += "<div class='text-center'>";
+	t += "<div class='btn-group btn-group-lg'>";
+	t += 	"<label class='btn btn-default' for='a2l-file-selector'>" ;
+	t += 		"<input id='a2l-file-selector' class='" + className + "' type='file' style='display:none;' >Select A2L" ; 
+	t += 	"</label>";
+	t += 	"<label class='btn btn-default' for='csv-file-selector'>" ;
+	t += 		"<input id='csv-file-selector' class='" + className + "' type='file' style='display:none;' >Select CSV" ; 
+	t += 	"</label>";
+	t += 	 "<button type='button' class='btn btn-default' id='delete-labels' >Delete labels</button>";
+	t += "</div>";
+	t += "</div>";
+	return t;
+}
+
 function opFrm(className) {
 	var t = "<form id='form-modal' class='" + className + "'>";
 	t+= "<div class='form-group contextual-items'>"; 
@@ -187,18 +222,40 @@ function wizardFrm(className) {
 //================================================ Init Functions ============================================================================
 function lblImportInit() {
 	// TODO: tell the user that there is no labels available
-	var library = Labels().load();
-	var reader = new FileReader();
+	// TODO: do not keep old error logs
 	var file;
+	var reader = new FileReader();
+	var library = Labels().load();
+
+	$(".save").prop("disabled", true);
+
+	if ( library.errors.length > 0 ) {
+		let pTag;
+		pTag = $(".bs-callout-warning").removeClass("hidden").find("p").empty();
+		for ( let k in library.errors ) {
+			pTag.append( library.errors[k].message);
+		}
+	}
 
 	$(".save").on("click",function() {
+		library.errors.length = 0;
 		library.save();
-		modalFormDestroy();
-		return false;
+		if ( library.errors.length > 0 ) {
+			var pTag, callout;
+			$(".bs-callout").addClass("hidden");
+			callout = $(".bs-callout-warning").removeClass("hidden");
+			pTag = callout.find("p").empty();
+			for ( let k in library.errors )  {
+				pTag.append( library.errors[k].message );
+			}
+		} else { 
+			modalFormDestroy();
+			return false;
+		}
 	});
 
 	// parse A2L file
-	$("#file-selector.lbl-import").on("change",function() {
+	$("#a2l-file-selector,#csv-file-selector").on("change",function() {
 		file = this.files[0];
 		
 		reader.onload = function( event ) {
@@ -207,15 +264,30 @@ function lblImportInit() {
 
 		reader.onloadend = function ( event ) {
 			if ( event.target.readyState == FileReader.DONE ) {
-				$(".modal-body").append("<div class='file-selector-info contextualItems'>");
-				$(".file-selector-info").append("<hr>");
-				$(".file-selector-info").append("<div class='alert alert-success contextualItems'>");
-				$(".alert-success").append( "<strong>Success!</strong></br>" );
-				$(".alert-success").append( "file name: " + file.name + "</br>" );
-				$(".alert-success").append( "file size: " + (file.size/1024).toFixed(1) + " KByte </br>" );
-				$(".alert-success").append( "Channels: " + library.db.length + "</br>" );
-				$(".alert-success").append( "Warnings: " + library.errors.length + "</br>" );
+				var msg = "";
+				var callout;
+				msg +=  "</br><strong>file name:</strong> " + file.name + "</br>" ;
+				msg +=  "<strong>file size:</strong> " + (file.size/1024).toFixed(1) + " KByte </br>" ;
+				msg +=  "<strong>Channels:</strong> " + library.db.length + "</br>" ;
+				if ( library.errors.length > 0 ) { 
+					msg +=  "<strong>errors: </strong></br><ul>" ;
+					for (let i =0; i<library.errors.length ; i++ ) {
+						msg += "<li>"+ library.errors[i].code + "</li>";
+					}
+					msg += "</ul>";
+					callout = $(".bs-callout-error").removeClass("hidden");
+				} else {
+					callout = $(".bs-callout-success").removeClass("hidden");
+					$(".save").prop("disabled", false);
+				}
+				callout.find("p").html(msg);
 			}
+		};
+
+		reader.onerror = function (event) {
+			$(".bs-callout-error").removeClass("hidden");
+			$(".bs-callout-error > p").empty();
+			$(".bs-callout-error > p").append("File could not be read ( error: " + event.target.error.code + ")");
 		};
 
 		reader.readAsText(file);
@@ -223,7 +295,9 @@ function lblImportInit() {
 
 	$("#delete-labels").on( "click" , function() {
 		library.delete();
-		alert("all the labels have been deleted!!!");
+		$(".bs-callout-success")
+			.removeClass("hidden")
+			.find("p").text("all the labels have been deleted!!!");
 	});
 
 }
@@ -603,7 +677,7 @@ function modalFormCreate(title,classname) {
 	
 	switch( classname ) {
 	case Config.frm.lblImport.class:
-		frm = uploadFrm(classname);
+		frm = configFrm(classname);
 		break;
 	case Config.frm.csvImport.class:
 		frm = uploadFrm(classname);
@@ -659,5 +733,7 @@ function modalFormDestroy() {
 	m.find(".modal-footer > .save").removeAttr("id");
 	$("button.save").off("click"); 
 	// m.find(".btn.btn-primary").removeAttr("form");
+	m.find(".bs-callout > p").empty();
+	$(".bs-callout").addClass("hidden");
 	m.modal("hide");
 }

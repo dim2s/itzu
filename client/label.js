@@ -32,17 +32,27 @@ labelDb.delete = function () {
 // TODO: better error handling
 //       is it really necessary to save and retrieve errors?
 labelDb.load = function() {
+	var msg;
 	if ( typeof(Storage) !== "undefined") {
 		var local = JSON.parse(localStorage.getItem("a2l"));
 		if ( local ) { 
 			this.db = local.db; 
 			this.files = local.files;
-			this.errors = local.errors;
+			this.errors = []; //local.errors;
 		} else {
-			alert("There is no labels in the store!");
+			msg = "The key for storing the labels doesn't exist in the store!";
 		}
 	} else {
-		alert("Sorry! No Web Storage support.. your informations will be lost when you close the browser");
+		msg =  "Sorry! No Web Storage support.. your informations will be lost when you close the browser";
+	}
+
+	if (msg) {
+		this.errors.push ({
+			"type": "WARNING",
+			"code": 0,
+			"message" : msg,
+			"row" : -1 
+		});
 	}
 
 	return this;
@@ -50,11 +60,27 @@ labelDb.load = function() {
 
 // save data in local storage if possible....
 labelDb.save = function() {
+	var msg;
 	if (typeof(Storage) !== "undefined") {
-		localStorage.setItem("a2l", JSON.stringify(this));
+		try { 
+			localStorage.setItem("a2l", JSON.stringify(this));
+		} catch ( error ) {
+			msg = "The local storage is full please, delete all labels before";
+		}
 	} else {
-		alert("Sorry! No Web Storage support.. your informations will be lost when you close the browser");
+		msg = "Sorry! No Web Storage support.. your informations will be lost when you close the browser";
 	}
+
+	if (msg) {
+		this.errors.push ({
+			"type": "WARNING",
+			"code": 0,
+			"message" : msg,
+			"row" : -1 
+		});
+	}
+
+
 	return this;
 };
 
@@ -74,14 +100,16 @@ labelDb.checkLabel = function (iteration, obj) {
 		});
 	}
 
-	if ( !obj.unit || !isNaN(parseInt(obj.unit)) ) {
-		this.errors.push ({
-			"type": type,
-			"code": code,
-			"message" : obj.unit + " is not a valid unit",
-			"row" : iteration
-		});
-	}
+	// if ( !obj.unit || !isNaN(parseInt(obj.unit)) ) {
+	// 	if(obj.unit !== "0/1") {
+	// 		this.errors.push ({
+	// 			"type": type,
+	// 			"code": code,
+	// 			"message" : obj.unit + " is not a valid unit",
+	// 			"row" : iteration
+	// 		});
+	// 	}
+	// }
 
 	if ( !obj.type || !isNaN(parseInt(obj.type)) ) {
 		this.errors.push ({
@@ -92,14 +120,14 @@ labelDb.checkLabel = function (iteration, obj) {
 		});
 	}
 
-	if ( !obj.desc ||  !isNaN(parseInt(obj.desc))) {
-		this.errors.push ({
-			"type": type,
-			"code": code,
-			"message" : obj.desc + " is not a valid desc",
-			"row" : iteration
-		});
-	}
+	// if ( !obj.desc ||  !isNaN(parseInt(obj.desc))) {
+	// 	this.errors.push ({
+	// 		"type": type,
+	// 		"code": code,
+	// 		"message" : obj.desc + " is not a valid desc",
+	// 		"row" : iteration
+	// 	});
+	// }
 
 	if ( obj.max && isNaN(parseInt(obj.max)) ) {
 		this.errors.push ({
@@ -228,13 +256,14 @@ labelDb.isPumaQtyFile = function(buffer) {
 
 // parse a buffer, will autodetect the file type and do the operations
 labelDb.parse = function(filename, buffer ) {
-	this.files.push(filename);
 
 	if ( this.isA2lFile(buffer) ) {
+		this.files.push({file:filename, type:"A2L"});
 		return this.parseA2l(buffer);
 	}
 	
 	if ( this.isPumaQtyFile(buffer) ) {
+		this.files.push({file:filename, type:"PUMA NN"});
 		return this.parsePumaQty(buffer);
 	} 
 

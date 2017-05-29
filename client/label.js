@@ -15,7 +15,7 @@
 const lineSeparator = /\r\n\r|\n/g;
 
 var labelDb = {
-	qtyKeys : { name : "\"iName\"", desc : "\"iDescription\"", unit: "\"rUnit\""},
+	qtyKeys : { name : "\"iName\""},
 	fieldSeparator : ";",
 };
 
@@ -174,7 +174,6 @@ labelDb.parseA2l = function ( content ) {
 
 		obj.name = token[0];
 		obj.type = token[2];
-		obj.desc = token[1];
 		obj.min  = parseFloat(token[7]);
 		obj.max  = parseFloat(token[8]);
 		// TODO: for performance reason we must do an ordered insert instead
@@ -209,8 +208,6 @@ labelDb.parsePumaQty = function(buffer) {
 	for( let i = 1 ; i < parsed.data.length  ; i++ ) {
 		var obj = {
 			name: parsed.data[i][this.qtyKeys.name].replace(/\"/g,""),
-			desc: parsed.data[i][this.qtyKeys.desc].replace(/\"/g,""),
-			unit: parsed.data[i][this.qtyKeys.unit].replace(/\"/g,""),
 			type: "NN"
 		};
 

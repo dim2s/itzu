@@ -43,8 +43,7 @@ $(document).ready(function() {
 				className: "chnLabel dt-body-center dt-head-center", 
 				data: "chnLabel", 
 				render: function (data ,type ,row ,meta ) { 
-					return "<a href='#' data-toggle='popover' data-placement='bottom' data-container='body' data-content='"
-						+row["chnDesc"] +"'>"+ data + "</a>"  ;
+					return "<a href='#' data-toggle='popover' data-placement='bottom' data-container='body' >"+ data + "</a>"  ;
 				}
 			},
 			{
@@ -98,21 +97,7 @@ $(document).ready(function() {
 				data: "chnType" ,
 				name: "chnType",
 				visible: false
-			} ,
-			{
-				title:"Unit",
-				targets:5,
-				className : "chnUnit",
-				data: "chnUnit",
-				visible: false
-			}, 
-			{
-				title:"Desc",
-				targets:6,
-				className : "chnDesc",
-				data: "chnDesc" ,
-				visible: false
-			}
+			} 
 
 		],
 		dom: "<'#chnToolbar'>Britp",

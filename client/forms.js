@@ -44,17 +44,6 @@ function chFrm( className ) {
 	t += 		buildOptions(Config.csv.type) ;
 	t += 		"</select>" ;
 	t += 	"</div>" ;
-	t += 	"<div class='form-group contextual-items'>" ;
-	t += 		"<label for='type' class='control-label'>Unit (optional):</label>" ;
-	t += 		"<select class='form-control dataTableAutoImport' id='chnUnit'>" ;
-	t += 			"<option>-</option>" ;
-	t += 			"<option>km/h</option>" ;
-	t += 		"</select> " ;
-	t += 	"</div>" ;
-	t += 	"<div class='form-group contextual-items'>" ;
-	t += 		"<label for='description' class='control-label'>Comment (optional):</label> " ;
-	t += 		"<textarea class='form-control dataTableAutoImport' rows='2' id='chnDesc'>commentaires...</textarea> " ;
-	t += 	"</div>";
 	t += 	"</form>";
 
 	return t;
@@ -365,8 +354,6 @@ function csvImportInit() {
 						// chn.chnTrigger = dict_trigger[trigger];
 						chn.chnTrigger = trigger;
 						chn.chnSetValues = Channel().create();
-						chn.chnUnit = "";
-						chn.chnDesc = "";
 						chnList[key] = chn;
 					}
 					chnList[key].chnSetValues.add( val, [op.opId] );
@@ -447,7 +434,6 @@ function chFrmInit() {
 	$("#chnLabel").on("select:flexdatalist", function(e,option) {
 		// in case the user select something from the list we autocomplete what we can
 		$("#chnType ").val(option.type).prop("disabled",true);
-		$("#chnDesc").text(option.desc);
 		if ( typeof(option.max)==="number" && typeof(option.min) === "number" ) {
 			$("#chnValue").attr("data-parsley-range","["+option.min+", "+ option.max + "]");
 		} else if ( typeof(option.max)==="number" ) {
@@ -456,9 +442,6 @@ function chFrmInit() {
 			$("#chnValue").attr("data-parsley-lt",option.min);
 		}
 
-		if ( option.unit ) {
-			$("#chnUnit ").val(option.unit).prop("disabled",true);
-		}
 	});
 
 	if ( $("#form-modal").hasClass("edit-ch") ) { 
@@ -472,8 +455,6 @@ function chFrmInit() {
 		// by initialising #chnLabel we loose the autocomplete feature of flexdatalist
 		$("#chnLabel-flexdatalist").val(rowSelected.data()[0].chnLabel);
 		$("#chnType").val(rowSelected.data()[0].chnType);
-		$("#chnUnit").val(rowSelected.data()[0].chnUnit);
-		$("#chnDesc").val(rowSelected.data()[0].chnDesc);
 		$("#chnTrigger").val(rowSelected.data()[0].chnTrigger);
 		$("#chnValue").val(rowSelected.data()[0].chnValue);
 	} 
@@ -485,8 +466,6 @@ function chFrmInit() {
 			// initialize obj with data from the form 
 			obj.chnLabel = $("#chnLabel-flexdatalist").val();
 			obj.chnType = $("#chnType").val();
-			obj.chnUnit = $("#chnUnit").val();
-			obj.chnDesc = $("#chnDesc").val();
 			obj.chnTrigger = $("#chnTrigger").val();
 			obj.chnValue = $("#chnValue").val();
 			obj.chnSetValues = Channel().create();
@@ -506,8 +485,6 @@ function chFrmInit() {
 			// initialize obj with data from the form 
 			obj.chnLabel = $("#chnLabel-flexdatalist").val();
 			obj.chnType = $("#chnType").val();
-			obj.chnUnit = $("#chnUnit").val();
-			obj.chnDesc = $("#chnDesc").val();
 			obj.chnTrigger = $("#chnTrigger").val();
 			obj.chnValue = $("#chnValue").val();
 

@@ -213,7 +213,7 @@ function lblImportInit() {
 	var reader = new FileReader();
 	var library = Labels().load();
 
-	$(".save").prop("disabled", true);
+	//$(".save").prop("disabled", true);
 
 	if ( library.errors.length > 0 ) {
 		let pTag;
@@ -264,7 +264,7 @@ function lblImportInit() {
 					callout = $(".bs-callout-error").removeClass("hidden");
 				} else {
 					callout = $(".bs-callout-success").removeClass("hidden");
-					$(".save").prop("disabled", false);
+					//$(".save").prop("disabled", false);
 				}
 				callout.find("p").html(msg);
 			}

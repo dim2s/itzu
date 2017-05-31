@@ -35,17 +35,20 @@ span.glyphicon.glyphicon-check, span.glyphicon.glyphicon-unchecked {
 	fill: e7e7e7;
 }
 
-/*
-.svg-container-responsive {
-	display: inline-block;
+#svg-container {
+	width: 80%;
+	height: 0;
+	padding-top: 48%;
 	position: relative;
-	width: 100%;
-	padding-bottom: 100%; 
-	vertical-align: middle;
-	overflow: hidden;
 }
 
+svg {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
 
+/*
 .svg-content-responsive {
 	display: inline-block;
 	position: absolute;

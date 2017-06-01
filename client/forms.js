@@ -99,10 +99,10 @@ function opFrm(className) {
 	var t = "<form id='form-modal' class='" + className + "'>";
 	t+= "<div class='form-group contextual-items'>"; 
 	t+= "<label for='type' class='control-label'>Mode:</label>" ;
-	t +=		"<select class='form-control dataTableAutoImport' name='regulation-mode' id='opMode' required>";
-	t +=		"<option value='' disabled selected>Select a regulation mode ... </option>";
-	t +=		buildOptions(Config.csv.mode);
-	t +=		"</select>";
+	t+=		"<select class='form-control dataTableAutoImport' name='regulation-mode' id='opMode' required>";
+	t+=		"<option value='' disabled selected>Select a regulation mode ... </option>";
+	t+=		buildOptions(Config.csv.mode);
+	t+=		"</select>";
 	t+= 	"</div>" ;
 	t+= 	"<div class='form-group contextual-items'>" ;
 	t+= 		"<label for='value' class='control-label'>Dyno:</label>" ;
@@ -329,21 +329,38 @@ function csvImportInit() {
 			lines = event.target.result.split(/\r\n|\r|\n/g);
 			// lines 1: header => init the parser
 			let header = lines[0].split(Config.csv.fieldSeparator);
-			let headerPart1 = Object.keys(Config.csv.header).length;
-			for(let i=1 ; i < lines.length ; i ++ ) {
+			let headerPart1Length = Object.keys(Config.csv.header).length;
+			for( let i=1 ; i < lines.length ; i ++ ) {
 				let op = {};
 				let line = lines[i].split(Config.csv.fieldSeparator);
-				for ( let j=0 ; j < headerPart1  ; j++ ){
+				if ( line.length !== headerPart1Length ){
+					console.log("csv import invalid line (" + i + ")")
+					break;
+				}
+
+				for ( let j=0 ; j < headerPart1Length  ; j++ ){
 					op[ dict_header[header[j]] ] = line[j] ;
 				}
 				// op.opMode = dict_mode[op.opMode];
 				op.opId = getNewId().toString();
 				opList.push(op);
 
-				for ( let j= headerPart1 ; j<header.length; j++ ){
-					let label, type, val, trigger, key;
-					[ label , type ] = header[j].split(Config.csv.valueSeparator);
-					[ val, trigger ] = line[j].split(Config.csv.valueSeparator);
+				for ( let j= headerPart1Length ; j<header.length; j++ ){
+					let label, type, val, trigger, key, data;
+					data = header[j].split(Config.csv.valueSeparator);
+					if (data.length != 2 ) {
+						console.log("invalid header col (" + j + ")");
+						break;
+					}
+					[ label , type ] = data;
+
+					data = line[j].split(Config.csv.valueSeparator);
+					if (data.length != 2 ) {
+						console.log("invalid header col (" + j + ")");
+						break;
+					}
+					[ val, trigger ] = data;
+
 					val = ( val === "*") ? null : val ;
 					key = [label,trigger].join("#");
 
@@ -358,7 +375,9 @@ function csvImportInit() {
 					}
 					chnList[key].chnSetValues.add( val, [op.opId] );
 				}
+				
 			}
+
 			// lines n: operating point lines
 			for ( let key in chnList ) {
 				chnList[key].chnSetValues.db.some( function (rule) {

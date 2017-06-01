@@ -161,6 +161,7 @@ $(document).ready(function() {
 	// Container for operating points
 	var t1 = $("#opDataTable").DataTable({
 		rowId: "opId",
+	    	"ordering": false,
 		"columnDefs":[
 			{
 				orderable: false,
@@ -178,9 +179,9 @@ $(document).ready(function() {
 					if ( type === "display") {
 						//Todo: apres un import csv la valeur est une string ensuite la valeur est un number.
 						//A regarder de pret pour avoir de la constistence. en attendant "==="=> "=="
-						if ( data === 1 ) { 
+						if ( data == 1 ) { 
 							return "<span class='glyphicon glyphicon-check'></span>";
-						} else if ( data === 0 ) {
+						} else if ( data == 0 ) {
 							return "<span class='glyphicon glyphicon-unchecked'></span>";
 						}
 					}

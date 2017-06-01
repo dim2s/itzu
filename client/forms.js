@@ -106,11 +106,11 @@ function opFrm(className) {
 	t+= 	"</div>" ;
 	t+= 	"<div class='form-group contextual-items'>" ;
 	t+= 		"<label for='value' class='control-label'>Dyno:</label>" ;
-	t+= 		"<input class='form-control dataTableAutoImport' id='opDyno' type='number' required>" ;
+	t+= 		"<input class='form-control dataTableAutoImport' id='opDyno' type='digits' required>" ;
 	t+= 	"</div>" ;
 	t+= 	"<div class='form-group contextual-items'>" ;
 	t+= 		"<label for='value' class='control-label'>Engine:</label>" ;
-	t+= 		"<input class='form-control dataTableAutoImport' id='opEngine' type='number' required>" ;
+	t+= 		"<input class='form-control dataTableAutoImport' id='opEngine' type='digits' required>" ;
 	t+= 	"</div>" ;
 	t+= 	"<div class='form-group contextual-items'>" ;
 	t+= 		"<label for='value' class='control-label'>Time:</label>" ;
@@ -243,7 +243,8 @@ function lblImportInit() {
 	// parse A2L file
 	$("#a2lcsv-file-selector").on("change",function() {
 		file = this.files[0];
-		
+		library.errors.length = 0;
+
 		reader.onload = function( event ) {
 			library.parse(file.name, event.target.result);
 		};
@@ -391,7 +392,7 @@ function csvImportInit() {
 
 		reader.onloadend = function ( event ) {
 			if ( event.target.readyState == FileReader.DONE ) {
-				$(".modal-body").append("<div class='file-selector-info contextualItems'>");
+				$(".modal-body > .dynamic-content").append("<div class='file-selector-info contextualItems'>");
 				$(".file-selector-info").append("<hr>");
 				$(".file-selector-info").append("<div class='alert alert-success contextualItems'>");
 				$(".alert-success").append( "<strong>Success!</strong></br>" );
@@ -431,7 +432,7 @@ function chFrmInit() {
 	var formInstance = $("#form-modal").parsley(parsleyConfig);
 
 	$("#chnLabel").flexdatalist({
-		minLength: 1,
+		minLength: 3,
 		searchIn: "name",
 		maxShownResults: 15,
 		visibleProperties: ["name"],
@@ -714,7 +715,14 @@ function modalFormCreate(title,classname) {
 	});
 
 	frmInit(classname);
-	m.modal("show");
+
+	var modalOptions = {
+		backdrop: 'static' ,
+		keyboard: false,
+		show: true
+	}
+
+	m.modal(modalOptions);
 }
 
 function modalFormDestroy() {

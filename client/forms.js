@@ -162,7 +162,7 @@ function wizardFrm(className) {
 	t +=		"</div>";
 	t +=	"</div>";
 	t +=	"<div class='form-group contextual-items'>";
-	t +=		"<div class= 'input-group'>";
+	t +=		"<div class= 'input-group step-count-group'>";
 	t +=			"<span class='input-group-addon'>";
 	t +=				"<div class='radio-inline'>";
 	t +=					"<label class='active'><input type='radio' name='type-dyno' aria-label='Step' checked='' value='step'>Step</label>";
@@ -171,7 +171,7 @@ function wizardFrm(className) {
 	t +=					"<label><input type='radio' name ='type-dyno' aria-label='Step' value='count'>Count</label>";
 	t +=				"</div>";
 	t +=			"</span>";
-	t +=			"<input type='number' class='form-control'  name='type-dyno-value' aria-describedby='basic-addon1' required>";
+	t +=			"<input type='number' class='form-control step-count-value'  name='type-dyno-value' aria-describedby='basic-addon1' required>";
 	t +=		"</div>";
 	t +=	"</div>";
 	t +=	"<hr class='contextual-items'>";
@@ -189,7 +189,7 @@ function wizardFrm(className) {
 	t +=		"</div>";
 	t +=	"</div>";
 	t +=	"<div class='form-group contextual-items'>";
-	t +=		"<div class= 'input-group'>";
+	t +=		"<div class= 'input-group step-count-group'>";
 	t +=			"<span class='input-group-addon'>";
 	t +=				"<div class='radio-inline'>";
 	t +=					"<label class='active'><input type='radio' name ='type-engine' aria-label='Step' checked='' value='step'>Step</label>";
@@ -198,7 +198,7 @@ function wizardFrm(className) {
 	t +=					"<label><input type='radio' name ='type-engine' aria-label='Step' value='count'>Count</label>";
 	t +=				"</div>";
 	t +=			"</span>";
-	t +=			"<input type='number' class='form-control'  name='type-engine-value' aria-describedby='basic-addon1' required>";
+	t +=			"<input type='number' class='form-control step-count-value'  name='type-engine-value' aria-describedby='basic-addon1' required>";
 	t +=		"</div>";
 	t +=	"</div>";
 	t +="</form>";
@@ -335,7 +335,7 @@ function csvImportInit() {
 				let op = {};
 				let line = lines[i].split(Config.csv.fieldSeparator);
 				if ( line.length !== headerPart1Length ){
-					console.log("csv import invalid line (" + i + ")")
+					console.log("csv import invalid line (" + i + ")");
 					break;
 				}
 
@@ -407,6 +407,16 @@ function csvImportInit() {
 
 function wizardFrmInit() {
 	var formInstance = $("#form-modal.wizard").parsley(parsleyConfig);
+
+	// for engine and dyno settings count must be an integer but step could be a float
+	// so depending on the user selection we toggle the input value type ( digits or integer )
+	$(".step-count-group").on("change", function() {
+		if ( $(this).find("input[type='radio']:checked").val() === "step") {
+			$(this).find("input.step-count-value").attr("type", "digits");
+		} else {
+			$(this).find("input.step-count-value").attr("type", "number");
+		}
+	});
 
 	$("select#regulation-mode").on("change", function() {
 		var mode = $("#regulation-mode option:selected").text();
@@ -717,10 +727,10 @@ function modalFormCreate(title,classname) {
 	frmInit(classname);
 
 	var modalOptions = {
-		backdrop: 'static' ,
+		backdrop: "static" ,
 		keyboard: false,
 		show: true
-	}
+	};
 
 	m.modal(modalOptions);
 }

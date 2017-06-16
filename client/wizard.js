@@ -72,14 +72,14 @@ var wizard = (function (){
 					engine.min = parseFloat(obj["min-engine"]);
 					engine.max = parseFloat(obj["max-engine"]);
 					if (obj["type-engine"] === "step") {
-						engine.step = parseInt(obj["type-engine-value"]);
+						engine.step = parseFloat(obj["type-engine-value"]);
 					} else {
 						engine.step = _step( engine.max, engine.min, parseInt(obj["type-engine-value"]));
 					}
 					dyno.min = parseFloat(obj["min-dyno"]);
 					dyno.max = parseFloat(obj["max-dyno"]);
 					if (obj["type-dyno"] === "step") {
-						dyno.step = parseInt(obj["type-dyno-value"]);
+						dyno.step = parseFloat(obj["type-dyno-value"]);
 					} else {
 						dyno.step = _step( dyno.max, dyno.min, parseInt(obj["type-dyno-value"]));
 					}

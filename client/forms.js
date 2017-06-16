@@ -205,6 +205,17 @@ function wizardFrm(className) {
 	return t;
 }
 
+// print callout msg in the modal box
+// msg.text: text to print (html format)
+// msg.type: ( default, primary, info, warning, error, success )	
+function printCalloutMsg(msg) {
+	var callout = $(".bs-callout-" + msg.type );
+
+	callout.removeClass("hidden");
+	callout.find("p").empty();
+	callout.find("p").html(msg.text);
+}
+
 //================================================ Init Functions ============================================================================
 function lblImportInit() {
 	// TODO: tell the user that there is no labels available
@@ -309,34 +320,38 @@ function csvImportInit() {
 	$("#file-selector.csv-import").on("change",function() {
 		var file = this.files[0];
 		var reader = new FileReader();
-		var lines = [];
-		var dict_header = {};
-		var dict_mode = {};
-		var dict_trigger = {};
+		var message = {};
 
-		for ( let k in Config.csv.trigger ) {
-			dict_trigger[Config.csv.trigger[k]] = k;
-		}
-	
-		for ( let k in Config.csv.header ) {
-			dict_header[ Config.csv.header[k].label ] = Config.csv.header[k].data;
-		}
-
-		for ( let k in Config.csv.mode ) {
-			dict_mode[ Config.csv.mode[k] ] = k;
-		}
 		
-		reader.onload = function( event ) {
-			lines = event.target.result.split(/\r\n|\r|\n/g);
+		function parseCsvFile(text,msg) {
+			var dict_header = {};
+			var dict_mode = {};
+			var dict_trigger = {};
+			var lines = [];
+
+			for ( let k in Config.csv.trigger ) {
+				dict_trigger[Config.csv.trigger[k]] = k;
+			}
+
+			for ( let k in Config.csv.header ) {
+				dict_header[ Config.csv.header[k].label ] = Config.csv.header[k].data;
+			}
+
+			for ( let k in Config.csv.mode ) {
+				dict_mode[ Config.csv.mode[k] ] = k;
+			}
+
+			lines = text.split(/\r\n|\r|\n/g);
 			// lines 1: header => init the parser
 			let header = lines[0].split(Config.csv.fieldSeparator);
 			let headerPart1Length = Object.keys(Config.csv.header).length;
 			for( let i=1 ; i < lines.length ; i ++ ) {
 				let op = {};
 				let line = lines[i].split(Config.csv.fieldSeparator);
-				if ( line.length !== headerPart1Length ){
-					console.log("csv import invalid line (" + i + ")");
-					break;
+				if ( line.length < headerPart1Length ){
+					msg.text = "csv import: invalid line length (" + i + ")";
+					msg.type = "error";
+					return;
 				}
 
 				for ( let j=0 ; j < headerPart1Length  ; j++ ){
@@ -349,34 +364,38 @@ function csvImportInit() {
 				for ( let j= headerPart1Length ; j<header.length; j++ ){
 					let label, type, val, trigger, key, data;
 					data = header[j].split(Config.csv.valueSeparator);
-					if (data.length != 2 ) {
-						console.log("invalid header col (" + j + ")");
-						break;
+					if (data.length != 2 && data != "" ) {
+						msg.text = "csv import: invalid header (col=" + j + ", " + header[j] + ")";
+						msg.type = "error";
+						return;
 					}
 					[ label , type ] = data;
 
 					data = line[j].split(Config.csv.valueSeparator);
-					if (data.length != 2 ) {
-						console.log("invalid header col (" + j + ")");
-						break;
+					if (data.length != 2  && data != "") {
+						msg.text = "csv import: invalid value (col=" + j + ", " + line[j] + ")";
+						msg.type = "error";
+						return;
 					}
-					[ val, trigger ] = data;
 
-					val = ( val === "*") ? null : val ;
-					key = [label,trigger].join("#");
+					if ( data.length === 2 ) {
+						[ val, trigger ] = data;
 
-					if (!(key in chnList)) {
-						var chn = {};
-						chn.chnLabel = label;
-						chn.chnType = type;
-						// chn.chnTrigger = dict_trigger[trigger];
-						chn.chnTrigger = trigger;
-						chn.chnSetValues = Channel().create();
-						chnList[key] = chn;
+						val = ( val === "*") ? null : val ;
+						key = [label,trigger].join("#");
+
+						if (!(key in chnList)) {
+							var chn = {};
+							chn.chnLabel = label;
+							chn.chnType = type;
+							// chn.chnTrigger = dict_trigger[trigger];
+							chn.chnTrigger = trigger;
+							chn.chnSetValues = Channel().create();
+							chnList[key] = chn;
+						}
+						chnList[key].chnSetValues.add( val, [op.opId] );
 					}
-					chnList[key].chnSetValues.add( val, [op.opId] );
 				}
-				
 			}
 
 			// lines n: operating point lines
@@ -388,19 +407,24 @@ function csvImportInit() {
 					}
 				});
 			}
+
+			msg.text =  "file name: " + file.name + "</br>";
+			msg.text +=  "file size: " + (file.size/1024).toFixed(1) + " KByte </br>";
+			msg.text +=  "lines: " + lines.length + "</br>";
+			msg.type = "success";
+
+		}
+		
+		reader.onload = function( event ) {
+			parseCsvFile(event.target.result, message);
 		};
 
 		reader.onloadend = function ( event ) {
 			if ( event.target.readyState == FileReader.DONE ) {
-				$(".modal-body > .dynamic-content").append("<div class='file-selector-info contextualItems'>");
-				$(".file-selector-info").append("<hr>");
-				$(".file-selector-info").append("<div class='alert alert-success contextualItems'>");
-				$(".alert-success").append( "<strong>Success!</strong></br>" );
-				$(".alert-success").append( "file name: " + file.name + "</br>" );
-				$(".alert-success").append( "file size: " + (file.size/1024).toFixed(1) + " KByte </br>" );
-				$(".alert-success").append( "lines: " + lines.length + "</br>" );
+				printCalloutMsg( message );
 			}
 		};
+
 		reader.readAsText(file);
 	});
 }

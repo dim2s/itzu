@@ -21,6 +21,7 @@ $(document).ready(function() {
 		"info": true,
 		"scrollY": "600px",
 		"scrollCollapse": true,
+	    	"ordering": false,
 		"select" : { 
 			style: "os" 
 		},

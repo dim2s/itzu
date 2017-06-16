@@ -69,15 +69,15 @@ var wizard = (function (){
 					control.mode = obj["regulation-mode"];
 					control.time = parseInt(obj["control-time"]);
 
-					engine.min = parseInt(obj["min-engine"]);
-					engine.max = parseInt(obj["max-engine"]);
+					engine.min = parseFloat(obj["min-engine"]);
+					engine.max = parseFloat(obj["max-engine"]);
 					if (obj["type-engine"] === "step") {
 						engine.step = parseInt(obj["type-engine-value"]);
 					} else {
 						engine.step = _step( engine.max, engine.min, parseInt(obj["type-engine-value"]));
 					}
-					dyno.min = parseInt(obj["min-dyno"]);
-					dyno.max = parseInt(obj["max-dyno"]);
+					dyno.min = parseFloat(obj["min-dyno"]);
+					dyno.max = parseFloat(obj["max-dyno"]);
 					if (obj["type-dyno"] === "step") {
 						dyno.step = parseInt(obj["type-dyno-value"]);
 					} else {

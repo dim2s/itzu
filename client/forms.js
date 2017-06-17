@@ -141,10 +141,13 @@ function wizardFrm(className) {
 	t +=	"<h5 class='contextual-items'>Direction settings:</h5>";
 	t +=	"<div class='form-group contextual-items'>";
 	t +=		"<div class='radio'>";
-	t +=			"<label class='active'><input type='radio' name='direction' aria-label='Step' value='down-up' checked='' >Down-Up</label>";
+	t +=			"<label class='active'><input type='radio' name='direction' aria-label='DownUp' value='down-up' checked='' >Down-Up</label>";
 	t +=		"</div>";
 	t +=		"<div class='radio'>";
-	t +=			"<label ><input type='radio' name='direction' aria-label='Step' value='up-down' >Up-Down</label>";
+	t +=			"<label ><input type='radio' name='direction' aria-label='UpDown' value='up-down' >Up-Down</label>";
+	t +=		"</div>";
+	t +=		"<div class='radio'>";
+	t +=			"<label ><input type='radio' name='direction' aria-label='FullLoad' value='down-up' disabled='true'>Full-Load</label>";
 	t +=		"</div>";
 	t +=	"</div>";
 	t +=	"<hr class='contextual-items'>";
@@ -195,7 +198,7 @@ function wizardFrm(className) {
 	t +=					"<label class='active'><input type='radio' name ='type-engine' aria-label='Step' checked='' value='step'>Step</label>";
 	t +=				"</div>";
 	t +=				"<div class='radio-inline'>";
-	t +=					"<label><input type='radio' name ='type-engine' aria-label='Step' value='count'>Count</label>";
+	t +=					"<label><input type='radio' name ='type-engine' aria-label='Count' value='count'>Count</label>";
 	t +=				"</div>";
 	t +=			"</span>";
 	t +=			"<input type='number' class='form-control step-count-value'  name='type-engine-value' aria-describedby='basic-addon1' required>";
@@ -442,10 +445,37 @@ function wizardFrmInit() {
 		}
 	});
 
+	$("input[name='direction'][type='radio']").on("change", function() {
+		if( $("input[name='direction'][aria-label='FullLoad']").is(":checked")) {
+			$("input[name='min-engine']").val(100);
+			$("input[name='min-engine']").attr("readonly","true");
+			$("input[name='max-engine']").val(101);
+			$("input[name='max-engine']").attr("readonly",true);
+			$("input[name='type-engine-value']").val("1");
+			$("input[name='type-engine-value']").attr("readonly",true);
+			$("input[name='type-engine'][aria-label='Count']").prop("checked", true);
+			$("input[name='type-engine']").attr("disabled",true);
+		} else {
+			$("input[name='min-engine']").attr("readonly",false);
+			$("input[name='max-engine']").attr("readonly",false);
+			$("input[name='type-engine-value']").attr("readonly",false);
+			$("input[name='type-engine']").attr("disabled",false);
+		}
+	});
+
 	$("select#regulation-mode").on("change", function() {
 		var mode = $("#regulation-mode option:selected").text();
 		$("#min-engine,#max-engine").attr("data-parsley-range","["+Config.csv.mode[mode].engineRange.toString()+"]");
 		$("#min-dyno,#max-dyno").attr("data-parsley-range","["+Config.csv.mode[mode].dynoRange.toString()+"]");
+
+		// fullLoad is allowed only in N/Accel mode
+		if ( mode === "N/ACCEL" ) {
+			$("input[name='direction'][aria-label='FullLoad']").attr("disabled",false);
+		} else {
+			$("input[name='direction'][aria-label='FullLoad']").attr("disabled",true);
+			$("input[name='direction'][aria-label='DownUp']").prop("checked",true).trigger("change");
+		}
+
 	});
 
 	$(".save").on("click", function() {

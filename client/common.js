@@ -2,11 +2,7 @@
 /* eslint no-unused-vars:off */
 /* unordered ToDo list:
 	child row with additional info: unit, description, etc..
-	hidden column unit, description, type, targetsRow
 	onreload page confirmation before loosing data
-	group row by type ( channel tab uniquement )
-	limit the number of row datalist can show ( or use JQuery flexdatalist plugin )
-	write on the UI, the a2l et qty.csv in use ( datatable information ? )
 */
 $(document).ready(function() {
 
@@ -21,7 +17,7 @@ $(document).ready(function() {
 		"info": true,
 		"scrollY": "600px",
 		"scrollCollapse": true,
-	    	"ordering": false,
+		"ordering": true,  // necessary for rowreorder
 		"select" : { 
 			style: "os" 
 		},
@@ -162,8 +158,20 @@ $(document).ready(function() {
 	// Container for operating points
 	var t1 = $("#opDataTable").DataTable({
 		rowId: "opId",
-	    	"ordering": false,
+		"orderFixed": [1, "asc"],
+		"rowReorder": 
+		{
+			selector: "td.reorder",
+			snapX:true,
+			update:true ,
+			dataSrc:"opIndex"
+		},
 		"columnDefs":[
+			{
+				orderable: true,
+				targets: 1 ,
+				className: "reorder"
+			},
 			{
 				orderable: false,
 				targets: "_all"
@@ -171,7 +179,7 @@ $(document).ready(function() {
 			{ 
 				name: "active",
 				title: "Activ",
-				targets:0 ,
+				targets: 0 ,
 				data: "opActive",
 				visible: true ,
 				defaultContent: Config.defaultContent.opActive,
@@ -190,19 +198,24 @@ $(document).ready(function() {
 				}
 			},
 			{
-				// name: "index",
+				name: "index",
+				data: "opIndex",
 				title: "#",
-				targets:1 ,
+				targets: 1 ,
 				defaultContent: "",
 				className: "dt-body-center dt-head-center select-row", //select-row (see CSS), -center to have the header and text aligned
 				render: function ( data, type, row, meta ) {
-					return meta.row;
+					if ( isNaN( data ) ) {
+						// Initialize opIndex when necessary
+						row.opIndex = meta.row;
+					}
+					return row.opIndex;
 				}
 			},
 			{ 
 				name: "mode",
 				title: "Mode",
-				targets:2,
+				targets: 2,
 				data: "opMode" ,
 				className: "dt-body-center dt-head-center",
 				render: function ( data, type, row) {
@@ -339,8 +352,8 @@ $(document).ready(function() {
 		} 
 	});
 
-
 //************************************* datatable common logic **********************************************
+
 	// if there is no row, there is no need to edit, remove or export csv
 
 	t2.buttons(["new:name","edit:name","remove:name","mergeAll:name"]).disable();
@@ -349,9 +362,9 @@ $(document).ready(function() {
 	// toolbar definition
 	$("#opToolbar").html("<h4>Operating points definition</h4>");
 	$("#chnToolbar").html("<h4>Channels definition</h4>");
-
 //************************************* datatable event handlers **********************************************
-	t1.on( "draw", function (e, settings) {
+
+	t1.on( "draw.dt", function (e, settings) {
 		var data = selectRowToDraw(targetMode);
 
 		// if there is at least one row, we should be able to export an CSV
@@ -366,6 +379,18 @@ $(document).ready(function() {
 		chart.draw(data);
 	} );
 
+	t1.on ("row-reorder.dt", function(e, detail, edit) {
+		// the rowreoder datatable extension will modify the DOM.
+		// We use the DOM as reference point to modify row index
+		// the fixed ordering rules will replace the row in the correct order
+		$("#opDataTable>tbody").find("tr").each ( function ( i ,e ) {
+			$("#opDataTable").DataTable().row("#"+e.id).data().opIndex= i ;
+		});
+
+		// source data has beend change so we need to tell datatable to reload data
+		t1.rows().invalidate();
+	});
+
 	t1.on( "select deselect", function (e,dt,type,index) {
 		selectHandler( dt, index, e.type );
 		// we need to re-render '#chnDataTable' to update the polyvalency attribute
@@ -376,23 +401,22 @@ $(document).ready(function() {
 		toggleDataTable_EditRemoveBtn(dt) ;
 		toggleChnDataTable_NewBtn() ;
 	} );
-
 //************************************* jQuery event handlers **********************************************
 
 	// toggle Activ cell value on click
 	$("#opDataTable tbody").on( "click", "td.active-control" , function () {
-		var tr = $(this).closest("tr");
-		var tr_idx = tr.index();
-		var d = t1.row(tr_idx).data();
+		var tr = $(this).closest("tr")[0];
+		var id = "#" + tr.id ;
+		var d = t1.row(id).data();
 
 		d["opActive"] = d["opActive"] === 0 ? 1 : 0;
 
 		//the draw is needed to rerender the tble and the graph
-		t1.row(tr_idx).data(d).draw("page");
+		t1.row(id).data(d).draw();
 
 	});
-
 //************************************* helper function **********************************************
+
 	function toogleSelectRows( dt ) {
 		// 	var dt=$("#opDataTable").DataTable();
 		//we call the draw method to force refreshing of the chart! otherwise it would not be necessary
@@ -403,6 +427,7 @@ $(document).ready(function() {
 			dt.rows().select().draw();
 		}
 	}
+
 	// make sure that chnDataTable 'new' button is activated only if 
 	// one operating point is selected
 	function toggleChnDataTable_NewBtn() { 

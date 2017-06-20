@@ -655,6 +655,16 @@ function opFrmInit() {
 		});
 
 		updateRange();
+	} else {
+		var msg = {};
+		msg.type = "info";
+		
+		if ( rowSelected.data().length > 0 ) {
+			msg.text = "This new operating point will be placed <strong>above</strong> the first item of your selection!";
+		} else {
+			msg.text = "This new operating point will be placed <strong>at the end</strong> of the list";
+		}
+		printCalloutMsg(msg) ;
 	}
 
 	// update the dyno and engine ranges upon user's mode selection
@@ -698,6 +708,19 @@ function opFrmInit() {
 			obj.opId	= getNewId();
 			obj.opActive	= Config.defaultContent.opActive;
 			obj.opSelected	= Config.defaultContent.opSelected; 
+
+			if ( rowSelected.data().length > 0 ) {
+				// the new row will be inserted just before the first selected row
+				obj.opIndex = rowSelected.data()[0].opIndex;
+
+				// for all below rows we compute the new index
+				dt.rows().data().each( function(e) {
+					if( e.opIndex >= obj.opIndex ) {
+						e.opIndex +=1;
+					}
+				});
+				dt.rows().invalidate();
+			}
 
 			// add the row and force a draw
 			dt.row.add(obj).draw();

@@ -734,8 +734,11 @@ function wizardAction() {
 	data = wizard.data(f);
 
 	rows = data.compute(f.direction);
-		
+	
+	//clear existing values from the two datatables	
 	t1.clear();
+	$("#chnDataTable").DataTable().clear().draw();
+
 	t1.rows.add(rows).draw();
 	t1.row(0).select();
 }

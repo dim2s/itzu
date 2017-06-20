@@ -562,9 +562,22 @@ function chFrmInit() {
 		$("#chnLabel-flexdatalist").val(rowSelected.data()[0].chnLabel);
 		$("#chnType").val(rowSelected.data()[0].chnType);
 		$("#chnTrigger").val(rowSelected.data()[0].chnTrigger);
-		// TODO: bug potentiel, dans l'interface c'est la derniere valeur renseignée qui est affichée et non
-		// la valeur courante pour le pdf et la consigne selectionnée
-		$("#chnValue").val(rowSelected.data()[0].chnValue);
+		// TODO:
+		// * ou et comment la propriete chnValue est utilisee 
+		var idSet = $("#opDataTable").DataTable().rows(".selected").ids().toArray();
+		var status = rowSelected.data()[0].chnSetValues.status( idSet ) ;
+		var valToEdit;
+		switch(status) {
+		case "sticky" :
+			valToEdit = rowSelected.data()[0].chnSetValues.default;
+			break;
+		case "single":
+			valToEdit = rowSelected.data()[0].chnSetValues.filter(idSet)[0].value;
+			break;
+		default:
+			valToEdit = "";
+		}
+		$("#chnValue").val(valToEdit);
 	} 
 	
 	$("#btn-new-ch").on("click", function() {
@@ -594,11 +607,17 @@ function chFrmInit() {
 			obj.chnLabel = $("#chnLabel-flexdatalist").val();
 			obj.chnType = $("#chnType").val();
 			obj.chnTrigger = $("#chnTrigger").val();
-			obj.chnValue = $("#chnValue").val();
 
 			// initialize remaining field with datatable
 			obj.chnSetValues = dt.row(idx).data().chnSetValues;
-			obj.chnSetValues.add(obj.chnValue, targets);
+
+			if ( targets.size === 0 ) {
+				// if no row is selected in #opDataTable we assumed that the user value
+				// should be apply for all ( sticky )
+				obj.chnSetValues.mergeAll($("#chnValue").val());
+			} else { 
+				obj.chnSetValues.add($("#chnValue").val(), targets);
+			}
 
 			//update data table
 			dt.row(idx).data(obj).draw();

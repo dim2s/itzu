@@ -21,7 +21,7 @@ var Config = {
 			"After ramp operating point" : { value : 1 }
 		},
 		type : {
-			"MAP"	: "map_ecu",
+			"MAP"	: "carto_ecu",
 			"CURVE"	: "curve_ecu",
 			"VALUE"	: "param_ecu",
 			"NN"	: "param",

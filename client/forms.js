@@ -344,60 +344,82 @@ function csvImportInit() {
 				dict_mode[ Config.csv.mode[k] ] = k;
 			}
 
+			// when exporting a test file without channels Itzu appends ";" at the end of file
+			// if we do not remove it, we will have to handle empty fields after split operations
 			lines = text.split(/\r\n|\r|\n/g);
+			lines = lines.map( function(e) { return e.replace(/;$/,""); });
+
 			// lines 1: header => init the parser
 			let header = lines[0].split(Config.csv.fieldSeparator);
+
+			// first part of header contains operating point setvalues TST_ACTIV, TST_MODE, etc...
 			let headerPart1Length = Object.keys(Config.csv.header).length;
+
+			// process lines ( not the header )
 			for( let i=1 ; i < lines.length ; i ++ ) {
 				let op = {};
+
 				let line = lines[i].split(Config.csv.fieldSeparator);
+
+				// all lines should at least contains the operating point setvalues
 				if ( line.length < headerPart1Length ){
 					msg.text = "csv import: invalid line length (" + i + ")";
 					msg.type = "error";
 					return;
 				}
 
+				// store operating point setvalues
 				for ( let j=0 ; j < headerPart1Length  ; j++ ){
 					op[ dict_header[header[j]] ] = line[j] ;
 				}
-				// op.opMode = dict_mode[op.opMode];
+				
+				// each operating point is identify by a uid
 				op.opId = getNewId().toString();
+
+				//append operating point to the operating point list
 				opList.push(op);
 
-				for ( let j= headerPart1Length ; j<header.length; j++ ){
+				// now process the channels for each operating point
+				for ( let j=headerPart1Length; j<header.length; j++ ){
 					let label, type, val, trigger, key, data;
+
+					//retrieve channels name and type that should look like this "label/type"
 					data = header[j].split(Config.csv.valueSeparator);
-					if (data.length != 2 && data != "" ) {
+					if (data.length != 2) {
 						msg.text = "csv import: invalid header (col=" + j + ", " + header[j] + ")";
 						msg.type = "error";
 						return;
 					}
-					[ label , type ] = data;
 
+					[ label , type ] = data;
+					// the type must be known
+					// TODO: verifier que le type est dans le dictionnaire qui va bien
+
+					// retrieve channels value and trigger
 					data = line[j].split(Config.csv.valueSeparator);
-					if (data.length != 2  && data != "") {
+					if (data.length != 2) {
 						msg.text = "csv import: invalid value (col=" + j + ", " + line[j] + ")";
 						msg.type = "error";
 						return;
 					}
 
-					if ( data.length === 2 ) {
-						[ val, trigger ] = data;
+					[ val, trigger ] = data;
 
-						val = ( val === "*") ? null : val ;
-						key = [label,trigger].join("#");
+					val = ( val === "*") ? null : val ;
 
-						if (!(key in chnList)) {
-							var chn = {};
-							chn.chnLabel = label;
-							chn.chnType = type;
-							// chn.chnTrigger = dict_trigger[trigger];
-							chn.chnTrigger = trigger;
-							chn.chnSetValues = Channel().create();
-							chnList[key] = chn;
-						}
-						chnList[key].chnSetValues.add( val, [op.opId] );
+					//check the unicity of "label#trigger"
+					//TODO: vu le format du fichier l'unicite est plutot label#type...
+					key = [label,trigger].join("#");
+					if (!(key in chnList)) {
+						var chn = {};
+						chn.chnLabel = label;
+						chn.chnType = type;
+						// chn.chnTrigger = dict_trigger[trigger];
+						chn.chnTrigger = trigger;
+						chn.chnSetValues = Channel().create();
+						chnList[key] = chn;
 					}
+					chnList[key].chnSetValues.add( val, [op.opId] );
 				}
 			}
 

@@ -524,7 +524,7 @@ $(document).ready(function() {
 	function channelsCsvHeader() {
 		var header = [];
 		$("#chnDataTable").DataTable().rows().data().each( function ( data, index ) {
-			header.push([data.chnLabel, Config.csv.type[data.chnType]].join(Config.csv.valueSeparator));
+			header.push([ Config.csv.type[data.chnType], data.chnLabel ].join(Config.csv.valueSeparator));
 		});
 		return header.join(Config.csv.fieldSeparator);
 	}

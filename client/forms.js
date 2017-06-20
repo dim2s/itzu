@@ -391,7 +391,7 @@ function csvImportInit() {
 						return;
 					}
 
-					[ label , type ] = data;
+					[ type, label ] = data;
 					// the type must be known
 					// TODO: verifier que le type est dans le dictionnaire qui va bien
 
@@ -562,6 +562,8 @@ function chFrmInit() {
 		$("#chnLabel-flexdatalist").val(rowSelected.data()[0].chnLabel);
 		$("#chnType").val(rowSelected.data()[0].chnType);
 		$("#chnTrigger").val(rowSelected.data()[0].chnTrigger);
+		// TODO: bug potentiel, dans l'interface c'est la derniere valeur renseignée qui est affichée et non
+		// la valeur courante pour le pdf et la consigne selectionnée
 		$("#chnValue").val(rowSelected.data()[0].chnValue);
 	} 
 	

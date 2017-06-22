@@ -113,7 +113,7 @@ function opFrm(className) {
 	t+= 		"<input class='form-control dataTableAutoImport' id='opEngine' type='digits' required>" ;
 	t+= 	"</div>" ;
 	t+= 	"<div class='form-group contextual-items'>" ;
-	t+= 		"<label for='value' class='control-label'>Time:</label>" ;
+	t+= 		"<label for='value' class='control-label'>Run Time (s):</label>" ;
 	t+= 		"<input class='form-control dataTableAutoImport' id='opTime' type='number' value='45' required>" ;
 	t+= 	"</div>";
 	t +="</form>";
@@ -133,7 +133,7 @@ function wizardFrm(className) {
 	t +=	"</div>";
 	t +=	"<div class='form-group contextual-items'>";
 	t +=		"<div class='input-group'>";
-	t +=			"<span class='input-group-addon' id='basic-addon1' >Control time</span>";
+	t +=			"<span class='input-group-addon' id='basic-addon1' >Run Time (s):</span>";
 	t +=			"<input type='number' class='form-control'  aria-describedby='basic-addon1' name='control-time' value='45' required>";
 	t +=		"</div>";
 	t +=	"</div>";

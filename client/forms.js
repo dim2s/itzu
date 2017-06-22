@@ -683,6 +683,7 @@ function opFrmInit() {
 			
 			// initialize remaining field with datatable
 			obj.opId = dt.row(idx).id();
+			obj.opIndex = dt.row(idx).data().opIndex;
 			obj.opActive = dt.row(idx).data().opActive;
 			obj.opSelected = dt.row(idx).data().opSelected;
 

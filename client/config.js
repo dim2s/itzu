@@ -14,7 +14,7 @@ var Config = {
 			"Dyno"		:{ label : "TST_DYNO_TARGET",	data: "opDyno" },
 			"Mode"		:{ label : "TST_CMOD",		data: "opMode" },
 			"Activ"		:{ label : "TST_ACTIV_OP",	data: "opActive"},
-			"Time"		:{ label : "TST_SSQ_LENGHT",	data: "opTime" }
+			"Time"		:{ label : "TST_SSQ_LENGTH",	data: "opTime" }
 		},
 		trigger : {
 			"Before ramp operating point": { value : 0 },

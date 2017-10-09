@@ -34,13 +34,13 @@ function chFrm( className ) {
 	t += 	"</div>" ;
 	t += 	"<div class='form-group contextual-items'>" ;
 	t += 		"<label for='trigger' class='control-label'>Trigger:</label>" ;
-	t += 		"<select class='form-control dataTableAutoImport' id='chnTrigger' >" ;
+	t += 		"<select class='form-control dataTableAutoImport' id='chnTrigger' required>" ;
 	t += 		buildOptions(Config.csv.trigger) ;
 	t += 		"</select>" ;
 	t += 	"</div>" ;
 	t += 	"<div class='form-group contextual-items'>" ;
 	t += 		"<label for='type' class='control-label'>Type </label>" ;
-	t += 		"<select class='form-control dataTableAutoImport' id='chnType'>" ;
+	t += 		"<select class='form-control dataTableAutoImport' id='chnType' required>" ;
 	t += 		buildOptions(Config.csv.type) ;
 	t += 		"</select>" ;
 	t += 	"</div>" ;
@@ -588,10 +588,9 @@ function chFrmInit() {
 			obj.chnLabel = $("#chnLabel-flexdatalist").val();
 			obj.chnType = $("#chnType").val();
 			obj.chnTrigger = $("#chnTrigger").val();
-			obj.chnValue = $("#chnValue").val();
 			obj.chnSetValues = Channel().create();
 
-			obj.chnSetValues.add( obj.chnValue, targets);
+			obj.chnSetValues.add( $("#chnValue").val(), targets);
 
 			// add the row and force a draw
 			dt.row.add(obj).draw();

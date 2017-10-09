@@ -9,6 +9,7 @@ var app = express();
 
 
 app.use("/client", express.static(__dirname + "/client"));
+app.use("/res", express.static(__dirname + "/res"));
 app.use("/libs", express.static(__dirname + "/libs"));
 app.use("/libs/css", express.static(__dirname + "/libs/css"));
 

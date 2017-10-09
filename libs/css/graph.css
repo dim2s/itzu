@@ -1,3 +1,10 @@
+/*rect.selection {
+	stroke: grey;
+	stroke-dasharray: 4px;
+	stroke-opacity: 0.5;
+	fill: transparent;
+}
+*/
 .line {
 	fill: none;
 	stroke: grey;
@@ -125,4 +132,13 @@ div.dt-autofill-list div.dt-autofill-question input[type=number] {
 }
 .bs-callout-info h4 {
 	color: #5bc0de;
+}
+
+.navbar-brand {
+	padding:10% 10%
+	!important;
+}
+
+.navbar-brand > img {
+	height: 100%;
 }

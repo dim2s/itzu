@@ -137,7 +137,6 @@ $(document).ready(function() {
 
 					rows.every( function (rowIdx, tableLoop, rowLoop ) {
 						var val  = dt.row(rowIdx).data().chnSetValues.value( opId );
-						// dt.row( rowIdx ).data().chnSetValues.mergeAll(dt.row( rowIdx ).data().chnValue);
 						dt.row( rowIdx ).data().chnSetValues.mergeAll( val );
 					});
 					dt.rows().invalidate("data").draw("false");
@@ -335,7 +334,8 @@ $(document).ready(function() {
 					}
 				},
 				customize: function (csv) {
-					return csv.replace(/\"/g, "");
+					// for unknown reason lines ending by ; start to be an issue...
+					return csv.replace(/\"/g, "").replace(/;(\n|$)/g,"\n");
 				}
 			} ,
 			{ 
